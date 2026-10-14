@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
 <title>Alvállalkozói felület – GeneralTeam</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{--bg:#F4F3EF;--paper:#fff;--ink:#0F2B36;--muted:#56656D;--line:#DCE2E4;--soft:#EBEEEC;--brass:#C49A5C;--brass-d:#8A6430;--brass-t:#F6EEDF;--ok:#1F7A4D;--ok-t:#E3F2EA;--warn:#9A5B00;--warn-t:#FDF1DF;--bad:#B3261E;--f:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;color-scheme:light}
 *{box-sizing:border-box}[hidden]{display:none!important}
@@ -127,5 +126,6 @@ if(!Q.pid||!Q.t){app.innerHTML='<div class="err">Hiányos link. Kérd el újra B
 call('alvBetolt',[Q.pid,Q.t]).then(function(r){ok(r)},function(e){app.innerHTML='<div class="err">'+esc(e&&e.message||e)+'</div>'});
 })();
 </script>
+<p style="text-align:center;font-size:12.5px;color:#6b7075;margin:24px 16px 40px">General Contractor Team Kft. · <a href="adatvedelem.html" style="color:inherit">Adatkezelési tájékoztató</a> · <a href="aszf.html" style="color:inherit">ÁSZF</a> · <a href="impresszum.html" style="color:inherit">Impresszum</a></p>
 </body>
 </html>

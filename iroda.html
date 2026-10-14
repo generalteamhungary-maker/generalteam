@@ -11,8 +11,7 @@ window.google={script:{}};Object.defineProperty(window.google.script,'run',{get:
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GeneralTeam – Rivo iroda</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 /* Layout: bal oldali menü + munkaterület; a projekt nézet egy idővonal (fázisok) + részletpanel */
 :root{
@@ -968,7 +967,7 @@ function partClick2(d,p,b){
   return false}
 /* ---- közös kattintás / változás ---- */
 function h2Click(d,p,b){
-  if(partClick2(d,p,b))return true;if(szDraftClick(d,p))return true;
+  if(juClick(d,b))return true;if(partClick2(d,p,b))return true;if(szDraftClick(d,p))return true;
   if(d.itadd){(OF.items[d.itadd]=OF.items[d.itadd]||[]).push({t:'',a:null,d:null,q:defQ(TPL[kIdx(d.itadd)].u,OF.m2),u:TPL[kIdx(d.itadd)].u.replace('²','2').replace('³','3'),opt:0});render();var ns=main.querySelectorAll('[data-it^="'+d.itadd+'|"][data-it$="|t"]');if(ns.length)ns[ns.length-1].focus();return true}
   if(d.itx){var a=d.itx.split('|');(OF.items[a[0]]||[]).splice(+a[1],1);render();return true}
   if(d.ittar){view.ittar=view.ittar===d.ittar?null:d.ittar;view.itq='';render();return true}
@@ -988,6 +987,18 @@ function szUtem(p){var sc=sched(p),r='';TPL.forEach(function(t,i){if(p.phases[i]
 function szDraftClick(d,p){if(d.act!=='szdraft'||!p)return false;if(!p.email){toast('Add meg az ügyfél e-mail címét');return true}var f=p.szf||(p.szf=szfDef(p));
   mail(p.email,'Szerződéstervezet – '+p.nev,'<p>Tisztelt '+esc(nm(p.ugyfel))+'!</p><p>Az egyeztetéshez küldjük a vállalkozási szerződés tervezetét. Kérjük, nézze át, és jelezze, ha valamit másként szeretne. A véglegesítés után a szerződést az ügyfélportálon tudja aláírni.</p><div style="border:1px solid #ddd;padding:16px;margin:12px 0">'+szerzHtml(p,f)+'</div>'+btnHtml(portalUrl(p),'Ügyfélportál')+sign());
   p.szDraft=iso(TODAY);log(p,'Szerződéstervezet elküldve véleményezésre');toast('Tervezet elküldve: '+p.email);render();return true}
+/* ---- jelszavas belépés beállítása ---- */
+var JU={st:'',list:[]};
+function juLoad(){var r=gs();if(!r){JU.st='ok';return}JU.st='load';r.withSuccessHandler(function(l){JU.st='ok';JU.list=l||[];if(view.tab==='beall')render()}).withFailureHandler(function(e){JU.st='err';JU.err=String(e&&e.message||e);if(view.tab==='beall')render()}).irodaFelhasznalok(CFG.k)}
+function jelszoCard(){if(!JU.st)juLoad();var h='<div class="card" style="margin-top:16px"><h2>Belépés e-mail címmel és jelszóval</h2><p class="muted" style="font-size:13.5px">A generalteam.hu Belépés oldalán így léphetsz be az irodába, az irodakulcs megjegyzése nélkül. Munkatársnak is adhatsz saját belépést, és bármikor törölheted. A jelszót csak hash-elve tároljuk, visszafejteni nem lehet.</p>';
+  if(JU.list.length)h+='<div class="list">'+JU.list.map(function(u){return '<div class="row"><div><div class="t">'+esc(u.e)+'</div><div class="s">beállítva: '+esc(u.d||'')+'</div></div><button class="btn sm ghost" data-judel="'+esc(u.e)+'">Belépés törlése</button></div>'}).join('')+'</div>';
+  else h+='<p class="muted" style="font-size:13.5px">'+(JU.st==='load'?'Betöltés…':(JU.st==='err'?'Nem sikerült betölteni: '+esc(JU.err):'Még nincs jelszavas belépés beállítva.'))+'</p>';
+  h+='<div class="grid g2"><label class="fld">E-mail cím<input type="email" id="ju_e" value="'+esc(S.settings.ertesites||'')+'" autocomplete="username"></label><label class="fld">Új jelszó (legalább 10 karakter)<input type="password" id="ju_p" autocomplete="new-password"></label><label class="fld">Jelszó még egyszer<input type="password" id="ju_p2" autocomplete="new-password"></label></div><span class="evr"><button class="btn sm" data-act="jusave">Jelszó mentése</button></span></div>';return h}
+function juClick(d,b){
+  if(d.act==='jusave'){var e=gv('ju_e').trim(),p1=gv('ju_p'),p2=gv('ju_p2');if(!/@/.test(e)){toast('Adj meg e-mail címet');return true}if(p1.length<10){toast('A jelszó legalább 10 karakter legyen');return true}if(p1!==p2){toast('A két jelszó nem egyezik');return true}
+    var r=gs();if(!r){toast('Helyi módban nem állítható');return true}b.disabled=true;r.withSuccessHandler(function(l){JU.list=l||[];toast('Jelszó beállítva: '+e);render()}).withFailureHandler(function(x){b.disabled=false;toast('Nem sikerült: '+(x&&x.message||x))}).irodaJelszo(CFG.k,e,p1);return true}
+  if(d.judel){var r2=gs();if(!r2)return true;if(view.judc!==d.judel){view.judc=d.judel;toast('Kattints még egyszer a törléshez');return true}view.judc=null;r2.withSuccessHandler(function(l){JU.list=l||[];toast('Belépés törölve');render()}).irodaJelszoTorol(CFG.k,d.judel);return true}
+  return false}
 
 function projCards(p){
   var h='<div class="grid g2"><div class="card"><h3>Kapcsolattartók</h3><p class="muted" style="font-size:13px">Akiket a projektben értesíteni kell: műszaki ellenőr, tervező, alvállalkozók, társ-megrendelő. A pipával jelölt címekre mennek a határidő- és tartalomváltozások és a meghívók. Az ügyfélportál linkjét csak az ügyfél kapja.</p><div class="list">';
@@ -1151,7 +1162,7 @@ function vBeall(){
    '<p class="muted" style="font-size:13px">Bekapcsolva minden közelgő időpont és leadási határidő meghívóként kerül a te naptáradba, az ügyfél és a pipált kapcsolattartók naptárába. Ha egy időpont vagy határidő módosul (bármelyik fél kérésére, a másik elfogadása után), a bejegyzés mindenkinél magától frissül. A mintaprojektek kimaradnak.</p></div>'+
    '<div class="card"><h2>Linkek</h2><div class="row"><div><div class="t">Weboldal ajánlatkérővel</div><div class="s" style="overflow-wrap:anywhere">'+esc(web)+'</div></div><a class="btn sm ghost" href="'+esc(web)+'" target="_blank" rel="noopener">Megnyitás</a></div>'+
    '<div class="row"><div><div class="t">Ügyfélportál</div><div class="s">Minden projekt saját linket kap, a projekt fejlécében találod.</div></div></div>'+
-   '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';
+   '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';h+=jelszoCard();
   main.innerHTML=h;
 }
 function render(){renderMenu();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}

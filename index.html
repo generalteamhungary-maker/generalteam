@@ -5,12 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>GeneralTeam – generálkivitelezés Budapesten és Pest megyében</title>
 <meta name="description" content="Lakásfelújítás, családi ház építése, bővítés és szakági munkák egy kézben. Helyszíni felmérés, munkanemenként részletezett árajánlat ütemtervvel, online ügyfélportál.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <link rel="stylesheet" href="site.css">
 </head>
 <body>
-<header class="hdr"><div class="wrap"><a class="brand" href="index.html" aria-label="GeneralTeam – kezdőlap"><svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="8" fill="#0F2B36"/><path d="M9 18L24 9l15 9" fill="none" stroke="#C49A5C" stroke-width="3" stroke-linecap="square"/><path d="M21 24H12v15h9v-7h-4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/><path d="M26 24h12M32 24v15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/></svg><span><b>General<span style="color:#8A6430">Team</span></b><small>GENERÁLKIVITELEZÉS</small></span></a><nav class="nav" aria-label="Fő menü"><a href="szolgaltatasok.html">Szolgáltatások</a><a href="referenciak.html">Referenciák</a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="index.html#feltetelek">Árak</a><a href="index.html#gyik">GYIK</a><a href="belepes.html">Belépés</a></nav><a class="tel" href="tel:+36706276706">+36 70 627 67 06</a><a class="btn" href="index.html#ajanlatkeres">Ajánlatot kérek</a></div><nav class="mnav" aria-label="Oldalak"><a href="szolgaltatasok.html">Szolgáltatások</a><a href="referenciak.html">Referenciák</a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="index.html#ajanlatkeres">Ajánlatkérés</a><a href="belepes.html">Belépés</a></nav></header>
+<header class="hdr"><div class="wrap"><a class="brand" href="index.html" aria-label="GeneralTeam – kezdőlap"><svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="8" fill="#0F2B36"/><path d="M9 18L24 9l15 9" fill="none" stroke="#C49A5C" stroke-width="3" stroke-linecap="square"/><path d="M21 24H12v15h9v-7h-4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/><path d="M26 24h12M32 24v15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/></svg><span><b>General<span style="color:#8A6430">Team</span></b><small>GENERÁLKIVITELEZÉS</small></span></a><nav class="nav" aria-label="Fő menü"><div class="dd"><a href="szolgaltatasok.html" aria-haspopup="true">Szolgáltatások ▾</a><div class="ddm"><a href="szolgaltatasok.html"><b>Generálkivitelezés, felújítás</b></a><a href="szakagak.html"><b>Szakági munkák – áttekintés</b></a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="szakag-gepeszet.html">Gépészet</a><a href="szakag-villanyszereles.html">Villanyszerelés</a><a href="szakag-vizszigeteles.html">Vízszigetelés</a><a href="szakag-burkolas.html">Burkolás</a><a href="szakag-festes-szarazepites.html">Festés, szárazépítés</a><a href="szakag-nyilaszarok.html">Nyílászárók</a><a href="szakag-teto.html">Tető, bádogozás</a><a href="szakag-homlokzat.html">Homlokzat, hőszigetelés</a><a href="szakag-bontas.html">Bontás, sittszállítás</a></div></div><a href="referenciak.html">Referenciák</a><a href="index.html#feltetelek">Árak</a><a href="index.html#gyik">GYIK</a><a href="belepes.html">Belépés</a></nav><a class="tel" href="tel:+36706276706">+36 70 627 67 06</a><a class="btn" href="index.html#ajanlatkeres">Ajánlatot kérek</a></div><nav class="mnav" aria-label="Oldalak"><a href="szolgaltatasok.html">Szolgáltatások</a><a href="szakagak.html">Szakágak</a><a href="referenciak.html">Referenciák</a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="index.html#ajanlatkeres">Ajánlatkérés</a><a href="belepes.html">Belépés</a></nav></header>
 <main id="top">
 <div class="hero">
   <div class="grid-bg" aria-hidden="true"></div>
@@ -111,7 +110,8 @@
           </div>
           <label class="fld">Milyen munkáról van szó?
             <select id="tipus"><option>Teljeskörű felújítás</option><option>Generálkivitelezés (új építés)</option><option>Bővítés, átalakítás, tetőtér-beépítés</option><option>Fürdőszoba / konyha felújítás</option><option>Szakági munka (gépészet, villany, burkolás…)</option><option>Belsőépítészeti tervezés</option><option>Egyéb</option></select></label>
-          <p class="note-i" id="bepnote" hidden>Belsőépítészeti tervezést partnerünk, Kókai Zsófia végzi. <a href="belsoepiteszet.html">Ismerje meg a munkáit</a>, vagy küldje el itt az ajánlatkérést, és mi továbbítjuk; ha kivitelezés is kell, azt mi vállaljuk.</p>
+          <label class="fld" id="szkw" hidden>Melyik szakág?<select id="szakag"><option>Gépészet</option><option>Villanyszerelés</option><option>Vízszigetelés</option><option>Burkolás</option><option>Festés, szárazépítés</option><option>Nyílászárók</option><option>Tető, bádogozás</option><option>Homlokzat, hőszigetelés</option><option>Bontás, sittszállítás</option><option>Több szakág / egyéb</option></select></label>
+          <p class="note-i" id="bepnote" hidden>A belsőépítészeti tervezést is tőlünk rendelheti meg: tapasztalt belsőépítész partnerünkkel dolgozunk, így a terv és a kivitelezés egy kézben marad. <a href="belsoepiteszet.html">Munkáink</a>.</p>
           <div class="f2">
             <label class="fld">Ingatlan<select id="ingatlan"><option>Lakás (panel)</option><option>Lakás (tégla)</option><option>Családi ház</option><option>Ikerház, sorház</option><option>Üzlet, iroda</option><option>Telek (új építés)</option></select></label>
             <label class="fld">Alapterület (m²)<input type="number" id="m2" inputmode="numeric" min="1" placeholder="pl. 80"></label>
@@ -148,8 +148,8 @@
           </div>
           <label class="fld">E-mail<input type="email" id="email" autocomplete="email"></label>
           <label class="fld" data-only="felmeres">Számlázási név és cím <small>(a felmérési díj díjbekérőjéhez)</small><input type="text" id="szamla" placeholder="ha eltér a fentiektől"></label>
-          <label class="chk" data-only="felmeres"><input type="checkbox" id="aszf"><span>Elfogadom a felmérés feltételeit: a díj 50%-a előleg a visszaigazoláskor; 48 órán belüli lemondásnál 20 000 Ft; 30 napon belüli megrendelésnél a díj beszámít.</span></label>
-          <label class="chk"><input type="checkbox" id="adatv"><span>Hozzájárulok, hogy adataimat az ajánlatkérés kezeléséhez felhasználják.</span></label>
+          <label class="chk" data-only="felmeres"><input type="checkbox" id="aszf"><span>Elfogadom a felmérés <a href="aszf.html#4" target="_blank">feltételeit</a>: a díj 50%-a előleg a visszaigazoláskor; 48 órán belüli lemondásnál 20 000 Ft; 30 napon belüli megrendelésnél a díj beszámít.</span></label>
+          <label class="chk"><input type="checkbox" id="adatv"><span>Elolvastam az <a href="adatvedelem.html" target="_blank">Adatkezelési tájékoztatót</a> és az <a href="aszf.html" target="_blank">ÁSZF</a>-et; adataimat az ajánlatkérés kezeléséhez felhasználhatják.</span></label>
           <div class="hp" aria-hidden="true"><label>Ne töltse ki<input type="text" id="hp" tabindex="-1" autocomplete="off"></label></div>
         </div>
 
@@ -188,7 +188,7 @@
     <div><b>General Contractor Team Kft.</b><br>2051 Biatorbágy, Nimród utca 30.<br>Cégjegyzékszám: 01 09 204112<br>Adószám: 25174032-2-13</div>
     <div><b>Elérhetőség</b><br><a href="tel:+36706276706">+36 70 627 67 06</a><br><a href="mailto:info@generalteam.hu">info@generalteam.hu</a><br>Hétköznap 8–17</div>
     <div><b>Működési terület</b><br>Budapest, Pest megye,<br>Biatorbágy 60 km-es körzete</div>
-    <div><b>Oldalak</b><br><a href="szolgaltatasok.html">Szolgáltatások</a><br><a href="referenciak.html">Referenciák</a><br><a href="belsoepiteszet.html">Belsőépítészet – partnerünk</a><br><a href="belepes.html">Belépés ügyfeleknek és partnereknek</a></div><div class="bot">© <span id="yr"></span> General Contractor Team Kft. · Az ajánlatkérő a Rivo rendszerrel működik.</div>
+    <div><b>Oldalak</b><br><a href="szolgaltatasok.html">Szolgáltatások</a><br><a href="szakagak.html">Szakági munkák</a><br><a href="referenciak.html">Referenciák</a><br><a href="belepes.html">Belépés</a><br><a href="adatvedelem.html">Adatkezelési tájékoztató</a><br><a href="aszf.html">ÁSZF</a><br><a href="impresszum.html">Impresszum</a></div><div class="bot">© <span id="yr"></span> General Contractor Team Kft. · Az ajánlatkérő a Rivo rendszerrel működik.</div>
   </div>
 </footer>
 <div class="mcta"><a class="btn ghost" href="tel:+36706276706">Hívás</a><a class="btn brass" href="#ajanlatkeres">Ajánlatot kérek</a></div>
@@ -217,8 +217,8 @@ function valid(n){var u=ut();
     if(u==='felmeres'&&!$('aszf').checked)return 'Kérjük, fogadja el a felmérés feltételeit.';if(!$('adatv').checked)return 'Kérjük, járuljon hozzá az adatkezeléshez.'}
   return ''}
 document.querySelectorAll('input[name=ut]').forEach(function(r){r.addEventListener('change',sync)});
-$('tipus').addEventListener('change',function(){$('bepnote').hidden=$('tipus').value!=='Belsőépítészeti tervezés'});
-(function(){if(/^#ajanlatkeres/.test(location.hash))setTimeout(function(){document.getElementById('ajanlatkeres').scrollIntoView()},60);var m=location.hash.match(/tipus=([^&]+)/);if(m){var v=decodeURIComponent(m[1]);[].forEach.call($('tipus').options,function(o){if(o.text===v)$('tipus').value=v});$('bepnote').hidden=$('tipus').value!=='Belsőépítészeti tervezés'}})();
+function szk(){$('bepnote').hidden=$('tipus').value!=='Belsőépítészeti tervezés';$('szkw').hidden=!/^Szakági/.test($('tipus').value)}$('tipus').addEventListener('change',szk);
+(function(){if(/^#ajanlatkeres/.test(location.hash))setTimeout(function(){document.getElementById('ajanlatkeres').scrollIntoView()},60);var m=location.hash.match(/tipus=([^&]+)/);if(m){var v=decodeURIComponent(m[1]);[].forEach.call($('tipus').options,function(o){if(o.text===v)$('tipus').value=v});var sm=location.hash.match(/szakag=([^&]+)/);if(sm){var sv=decodeURIComponent(sm[1]);[].forEach.call($('szakag').options,function(o){if(o.text===sv)$('szakag').value=sv})}szk()}})();
 ['m2','hely'].forEach(function(id){$(id).addEventListener('input',sync)});
 document.querySelectorAll('[data-ut]').forEach(function(a){a.addEventListener('click',function(){var r=document.querySelector('input[name=ut][value="'+a.dataset.ut+'"]');if(r){r.checked=true;show(1)}})});
 $('next').addEventListener('click',function(){var m=valid(step);if(m){err(m);return}if(step<4){show(step+1);$('wiz').scrollIntoView({block:'start',behavior:'smooth'});return}send()});
@@ -229,7 +229,7 @@ $('files').addEventListener('change',function(e){var drop=0;err('');[].slice.cal
 $('flist').addEventListener('click',function(e){var b=e.target.closest('[data-rm]');if(b){FILES.splice(+b.dataset.rm,1);rf()}});
 function b64(f){return new Promise(function(ok,no){var r=new FileReader();r.onload=function(){ok({n:f.name,t:f.type||'application/octet-stream',b64:String(r.result).split(',')[1]})};r.onerror=no;r.readAsDataURL(f)})}
 function send(){var u=ut(),bt=$('next');bt.disabled=true;$('back').disabled=true;bt.textContent=FILES.length?'Küldés és feltöltés…':'Küldés…';
-  var o={hp:$('hp').value,ut:u,fee:u==='felmeres'?fee():0,nev:$('nev').value.trim(),email:$('email').value.trim(),tel:$('tel').value.trim(),tipus:$('tipus').value,ingatlan:$('ingatlan').value,m2:+$('m2').value||0,hely:$('hely').value.trim(),
+  var o={hp:$('hp').value,ut:u,fee:u==='felmeres'?fee():0,nev:$('nev').value.trim(),email:$('email').value.trim(),tel:$('tel').value.trim(),tipus:$('tipus').value+(/^Szakági/.test($('tipus').value)?' – '+$('szakag').value:''),ingatlan:$('ingatlan').value,m2:+$('m2').value||0,hely:$('hely').value.trim(),
     cim:u==='felmeres'?$('cim').value.trim():'',szamla:u==='felmeres'?$('szamla').value.trim():'',kezdes:$('kezdes').value,megj:$('megj').value.trim(),
     elso:{visszahivas:'Visszahívás',becsles:'Költségbecslés',felmeres:'Helyszíni felmérés'}[u],idopont:u==='felmeres'?($('fnap').value+' '+$('fsz').value):''};
   o.reszlet=(u==='felmeres'?'Felmérési díj (várható): '+ft(o.fee)+' + áfa, feltételeket elfogadta':'');

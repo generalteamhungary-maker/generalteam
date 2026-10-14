@@ -9,8 +9,7 @@ window.google={script:{}};Object.defineProperty(window.google.script,'run',{get:
 </script><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ügyfélportál – GeneralTeam</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/fonts.css">
 <style>
 :root{--paper:#F4F3EF;--sheet:#FFFFFF;--ink:#0F2B36;--muted:#56656D;--line:#DCE2E4;--sage:#1F7A4D;--sage-tint:#E3F2EA;--oak:#C49A5C;--warn:#9A5B00;--warn-tint:#FDF1DF;
   --display:'Archivo',system-ui,sans-serif;--body:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif;color-scheme:light}
@@ -179,7 +178,8 @@ function offerDoc(o,m,D8){var e=esc;
    (o.afa!=null&&!(o.items&&o.items.length)?'<p>'+(o.rev?'Az ajánlat fordított adózás alá esik.':'ÁFA 27%: '+ft(+o.afa||0)+' · Bruttó összesen: <b>'+ft((+o.sum||0)+(+o.afa||0))+'</b>')+'</p>':'')+
    (att?'<b>Mellékletek</b><ul>'+att+'</ul>':'')+
    (o.src==='proj'?'<p class="s">A projekt adataiból összesítve.</p>':'')+
-   (o.erv?'<p class="s">Az ajánlat érvényessége: '+D8(o.erv)+'</p>':'')+'</body></html>'}
+   (o.erv?'<p class="s">Az ajánlat érvényessége: '+D8(o.erv)+'</p>':'')+'<p style="text-align:center;font-size:12.5px;color:#6b7075;margin:24px 16px 40px">General Contractor Team Kft. · <a href="adatvedelem.html" style="color:inherit">Adatkezelési tájékoztató</a> · <a href="aszf.html" style="color:inherit">ÁSZF</a> · <a href="impresszum.html" style="color:inherit">Impresszum</a></p>
+</body></html>'}
 function openDoc(html){var u=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),w=window.open(u,'_blank');if(!w){var a=document.createElement('a');a.href=u;a.target='_blank';document.body.appendChild(a);a.click();a.remove()}}
 
 function vis(d){return d&&!d[4]}

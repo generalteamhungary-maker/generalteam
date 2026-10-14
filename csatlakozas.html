@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rivo – partnerjelentkezés</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: egyoszlopos űrlap, bal oldalon (széles képernyőn) rögzített szakaszjegyzék; telefonon egymás alatt */
+:root{
+  --bg:#F5F6F2; --surface:#FFFFFF; --fg:#0F1D26; --muted:#46565F; --line:#DCE2E4;
+  --brand:#1A56A0; --on-brand:#FFFFFF; --brass:#F0A23B; --brass-ink:#1A56A0; --brass-tint:#E8EFF7;
+  --ok:#1F7A4D; --bad:#B3261E; --bad-tint:#FBE9E7;
+  --display:'Bricolage Grotesque',Georgia,serif; --body:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  color-scheme:light;
+}
+html,:root[data-theme]{color-scheme:light}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}@media (max-width:640px){.grid3{grid-template-columns:minmax(0,1fr)}}
+.efile[hidden],.addfile[hidden],#owner[hidden],.done[hidden]{display:none!important}
+#owner,#pf{grid-column:2;min-width:0}@media (max-width:960px){#owner,#pf{grid-column:1}}
+.addfile{font:inherit;font-weight:600;color:var(--brand);background:var(--brass-tint);border:1.5px dashed var(--brand);border-radius:6px;padding:9px 14px;cursor:pointer;justify-self:start}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.55;margin:0}
+.wrap{max-width:1080px;margin:0 auto;padding-inline:16px;padding-block:28px 64px;display:grid;grid-template-columns:220px minmax(0,1fr);gap:32px}
+@media (max-width:960px){.wrap{grid-template-columns:minmax(0,1fr)!important}.toc{display:none!important}}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance;letter-spacing:-.005em}
+h1{font-size:clamp(28px,4.4vw,40px);line-height:1.1}
+h2{font-size:22px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px;letter-spacing:.01em}
+.brand small{display:block;font-size:10.5px;letter-spacing:.16em;color:var(--muted);font-weight:600;text-transform:uppercase}
+header.top{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end;border-bottom:2px solid var(--fg);padding-bottom:18px}
+.lead{max-width:62ch;color:var(--muted);margin:8px 0 0}
+.toc{position:relative;align-self:start;display:flex;flex-direction:column;gap:2px;font-size:14px}
+.toc a{color:var(--muted);text-decoration:none;padding:6px 10px;border-left:2px solid var(--line)}
+.toc a:hover,.toc a:focus-visible{color:var(--fg);border-left-color:var(--brass)}
+.toc .meta{margin-top:14px;padding:12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--muted);font-size:13px}
+form{display:flex;flex-direction:column;gap:22px;min-width:0}
+fieldset{border:1px solid var(--line);border-radius:8px;background:var(--surface);padding:20px;margin:0;display:flex;flex-direction:column;gap:14px;min-width:0}
+legend{display:contents}
+.sec-h{display:flex;gap:12px;align-items:baseline}
+.sec-h .n{font-family:var(--display);font-weight:700;color:var(--brass-ink);font-size:15px;letter-spacing:.06em;font-variant-numeric:tabular-nums}
+.hint{color:var(--muted);font-size:14px;margin:0}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+@media (max-width:620px){.grid{grid-template-columns:minmax(0,1fr)}}
+.f{display:flex;flex-direction:column;gap:5px;font-weight:600;font-size:14px;min-width:0}
+.f .req{color:var(--brass-ink)}
+.f small{font-weight:400;color:var(--muted)}
+input[type=text],input[type=email],input[type=tel],input[type=url],input[type=number],select,textarea{font:inherit;font-weight:400;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:10px 11px;width:100%}
+textarea{min-height:92px;resize:vertical}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative}
+.chip input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.chip span{display:inline-block;padding:8px 12px;border:1.5px solid var(--line);border-radius:999px;font-size:14px;font-weight:500;background:var(--surface);color:var(--fg)}
+.chip input:checked+span{background:var(--brass-tint);border-color:var(--brass);color:var(--fg);font-weight:700}
+.chip input:focus-visible+span{outline:3px solid var(--brass);outline-offset:2px}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;font-weight:400}
+.check input{margin-top:4px;width:18px;height:18px;flex:none;accent-color:var(--brand)}
+.ref{border-top:1px dashed var(--line);padding-top:14px;display:flex;flex-direction:column;gap:12px}
+.ref:first-of-type{border-top:0;padding-top:0}
+.ref h3{font-size:16px}
+.terms{background:var(--brass-tint);border:1px solid var(--brass);border-radius:8px;padding:14px 16px;font-size:14.5px}
+.terms ul,.terms ol{margin:6px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:4px}
+.btn{font:inherit;font-weight:700;border:0;border-radius:6px;padding:13px 20px;background:var(--brand);color:var(--on-brand);cursor:pointer;min-height:46px}
+.btn.sec{background:transparent;color:var(--fg);border:1.5px solid var(--line)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.err{background:var(--bad-tint);color:var(--bad);border-radius:6px;padding:10px 12px;font-size:14px}
+.done{border:2px solid var(--ok);border-radius:8px;background:var(--surface);padding:22px;display:flex;flex-direction:column;gap:10px}
+.saved{font-size:13px;color:var(--muted)}
+#done{grid-column:2}
+@media (max-width:820px){#done{grid-column:1}}
+.hp{position:absolute;left:-9999px}
+@media (prefers-reduced-motion:no-preference){.chip span{transition:background .15s,border-color .15s}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div style="display:flex;flex-direction:column;gap:14px;min-width:0">
+      <div class="brand"><svg width="34" height="34" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="13" fill="#1A56A0"></rect><path d="M9 19c4.7-5.3 9.3-5.3 14 0s9.3 5.3 15.3-1.3" stroke="#F0A23B" stroke-width="4" fill="none" stroke-linecap="round"></path><path d="M9 29c4.7-5.3 9.3-5.3 14 0s9.3 5.3 15.3-1.3" stroke="#FFFFFF" stroke-width="4" fill="none" stroke-linecap="round"></path></svg><div style="font-family:var(--display);font-size:24px">Rivo<small>Alapító partnerprogram · powered by GeneralTeam</small></div></div>
+      <h1>Jelentkezés partnernek</h1>
+      <p class="lead">Szakági kivitelezőknek, generálkivitelezőknek, tervezőknek, műszaki ellenőröknek és felelős műszaki vezetőknek. Ebből az adatlapból indul a saját weboldalad és ügyviteli rendszered tervezése: utána felhívunk, átbeszéljük a munkamódodat, és a bevezetés alatt rád szabjuk a rendszert. Kb. 10–15 perc. A félig kitöltött adatlapot a böngésződ megjegyzi, később folytathatod.</p>
+    </div>
+  </header>
+
+  <nav class="toc" aria-label="Szakaszok">
+    <a href="#s1">1. A vállalkozás</a><a href="#s2">2. Szakág és szolgáltatások</a><a href="#s3">3. Terület és kapacitás</a><a href="#s4">4. Referenciák</a><a href="#s5">5. Profiloldal</a><a href="#s6">6. Munkamód, preferenciák</a><a href="#s7">7. Egyéb, hozzájárulás</a>
+    <div class="meta"><strong>Alapító partnerként</strong> saját weboldalt és építőipari ügyviteli rendszert kapsz, a te munkamódodra szabva – a bevezetés alatt és az éles indulástól 12 hónapig díjmentesen. A feltételeket a 7. pontban látod.</div>
+  </nav>
+
+  <section id="owner" class="done" hidden style="border-color:var(--brand)">
+    <h2>Beküldött adatlapok</h2>
+    <p class="hint" style="margin:0">Csak te látod. Itt helyben, a partnerrel együtt is kitöltheted az adatlapot – a beküldés ide mentődik.</p>
+    <div id="olist" class="hint">Betöltés…</div>
+  </section>
+  <form id="pf" name="partner-jelentkezes" method="POST" data-netlify="true" netlify-honeypot="hp" enctype="multipart/form-data" novalidate>
+    <input type="hidden" name="form-name" value="partner-jelentkezes">
+    <p class="hp"><label>Ne töltsd ki: <input name="hp" id="hp"></label></p>
+
+    <fieldset id="s1"><legend><div class="sec-h"><span class="n">01</span><h2>A vállalkozás</h2></div></legend>
+      <div class="grid">
+        <label class="f"><span>Cég vagy egyéni vállalkozás neve <span class="req">*</span></span><input type="text" id="ceg" name="ceg" required autocomplete="organization" placeholder="pl. Kovács Gépész Kft."></label>
+        <label class="f"><span>Kapcsolattartó neve <span class="req">*</span></span><input type="text" id="nev" name="nev" required autocomplete="name"></label>
+        <label class="f"><span>Telefon <span class="req">*</span></span><input type="tel" id="tel" name="telefon" required autocomplete="tel" placeholder="+36 30 123 4567"></label>
+        <label class="f"><span>E-mail <span class="req">*</span></span><input type="email" id="email" name="email" required autocomplete="email"></label>
+        <label class="f">Adószám<input type="text" id="adoszam" name="adoszam" placeholder="12345678-2-13"></label>
+        <label class="f">Áfa-helyzet<select id="afa" name="afa"><option value="">Válassz…</option><option>Áfás</option><option>Alanyi adómentes (AAM)</option><option>Még nem tudom</option></select></label>
+        <label class="f">Székhely (település)<input type="text" id="szekhely" name="szekhely" placeholder="pl. Budaörs"></label>
+        <label class="f">Hány éve dolgozol a szakmában?<input type="number" id="evek" name="evek" min="0" max="60" inputmode="numeric"></label>
+        <label class="f">Létszám (veled együtt)<select id="letszam" name="letszam"><option value="">Válassz…</option><option>Egyedül dolgozom</option><option>2–3 fő</option><option>4–10 fő</option><option>10 főnél több</option></select></label>
+        <label class="f">Weboldal, Facebook, Google-profil<input type="url" id="web" name="web" placeholder="https://"></label>
+      </div>
+      <label class="f">Jogosultságok, engedélyek, biztosítás <small>pl. gázszerelői engedély, ÉV-szám, kamarai tagság, felelős műszaki vezetői jogosultság, felelősségbiztosítás</small><textarea id="jogos" name="jogosultsagok"></textarea></label>
+    </fieldset>
+
+    <fieldset id="s2"><legend><div class="sec-h"><span class="n">02</span><h2>Szakág és szolgáltatások</h2></div></legend>
+      <div class="f"><span>Milyen partnerként jelentkezel?</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="partner_tipus" value="Szakági kivitelező"><span>Szakági kivitelező</span></label><label class="chip"><input type="checkbox" name="partner_tipus" value="Generálkivitelező (saját alvállalkozókkal)"><span>Generálkivitelező (saját alvállalkozókkal)</span></label><label class="chip"><input type="checkbox" name="partner_tipus" value="Tervező"><span>Tervező</span></label><label class="chip"><input type="checkbox" name="partner_tipus" value="Műszaki ellenőr"><span>Műszaki ellenőr</span></label><label class="chip"><input type="checkbox" name="partner_tipus" value="Felelős műszaki vezető"><span>Felelős műszaki vezető</span></label><label class="chip"><input type="checkbox" name="partner_tipus" value="Egyéb" data-other="partner_tipus_egyeb"><span>Egyéb</span></label></div><input type="text" id="partner_tipus_egyeb" name="partner_tipus_egyeb" placeholder="pl. szakértő, energetikus" hidden></div>
+      <div class="f"><span>Szakág(ak) <span class="req">*</span></span><small>Többet is jelölhetsz.</small>
+        <div class="chips" id="szakag">
+          <label class="chip"><input type="checkbox" name="szakag" value="Gépészet (víz, fűtés, gáz)"><span>Gépészet (víz, fűtés, gáz)</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Villanyszerelés"><span>Villanyszerelés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Hidegburkolás"><span>Hidegburkolás</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Melegburkolás"><span>Melegburkolás</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Festés, mázolás"><span>Festés, mázolás</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Kőműves munka"><span>Kőműves munka</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Szárazépítés"><span>Szárazépítés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Ács, tetőfedés, bádogos"><span>Ács, tetőfedés, bádogos</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Nyílászáró"><span>Nyílászáró</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Építész tervezés"><span>Építész tervezés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Belsőépítészet"><span>Belsőépítészet</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Klíma, hőszivattyú, napelem"><span>Klíma, hőszivattyú, napelem</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Generálkivitelezés"><span>Generálkivitelezés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Statikus tervezés"><span>Statikus tervezés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Épületgépész tervezés"><span>Épületgépész tervezés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Villamos tervezés"><span>Villamos tervezés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Energetika, tanúsítás"><span>Energetika, tanúsítás</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Műszaki ellenőrzés"><span>Műszaki ellenőrzés</span></label>
+          <label class="chip"><input type="checkbox" name="szakag" value="Felelős műszaki vezetés"><span>Felelős műszaki vezetés</span></label>
+        </div>
+      </div>
+      <label class="f">Egyéb szakág<input type="text" id="szakag_egyeb" name="szakag_egyeb" placeholder="pl. klíma, napelem, kertépítés"></label>
+      <label class="f"><span>Milyen munkákat vállalsz szívesen? <span class="req">*</span></span><small>Felsorolásszerűen is jó – ebből írjuk meg a szolgáltatásaidat a profiloldalon.</small><textarea id="szolg" name="szolgaltatasok" required placeholder="pl. fürdőszoba-gépészet teljes felújítása, kazáncsere, padlófűtés, gyorsszerviz csőtörésre"></textarea></label>
+      <label class="f">Generálkivitelezőknek: alvállalkozói kör, jellemző megbízók <small>pl. hány állandó alvállalkozóval dolgozol, milyen szakágakban; lakóépület, ipari, logisztikai, intézményi megbízások</small><textarea id="gk_kor" name="gk_alvallalkozok_megbizok" placeholder="pl. 12 állandó alvállalkozó (gépész, villany, burkoló, festő). Társasházépítés saját beruházásban, ipari csarnokok és irodák felújítása külső megbízóknak."></textarea></label>
+      <label class="f">Mit nem vállalsz?<input type="text" id="nemvallal" name="nem_vallal" placeholder="pl. ipari munka, 1 napnál rövidebb javítás"></label>
+    </fieldset>
+
+    <fieldset id="s3"><legend><div class="sec-h"><span class="n">03</span><h2>Terület és kapacitás</h2></div></legend>
+      <div class="f"><span>Hol dolgozol? <span class="req">*</span></span>
+        <div class="chips" id="terulet">
+          <label class="chip"><input type="checkbox" name="terulet" value="Budapest – Buda"><span>Budapest – Buda</span></label>
+          <label class="chip"><input type="checkbox" name="terulet" value="Budapest – Pest"><span>Budapest – Pest</span></label>
+          <label class="chip"><input type="checkbox" name="terulet" value="Pest megye"><span>Pest megye</span></label>
+          <label class="chip"><input type="checkbox" name="terulet" value="Biatorbágy 60 km-es körzete"><span>Biatorbágy 60 km-es körzete</span></label>
+          <label class="chip"><input type="checkbox" name="terulet" value="Fejér, Komárom-Esztergom"><span>Fejér, Komárom-Esztergom</span></label>
+          <label class="chip"><input type="checkbox" name="terulet" value="Egyéb" data-other="terulet_egyeb"><span>Egyéb</span></label>
+        </div>
+        <input type="text" id="terulet_egyeb" name="terulet_egyeb" placeholder="pl. Győr és 30 km-es körzete, országosan" hidden>
+      </div>
+      <div class="f"><span>Vállalt munkák értéke (nettó)</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="munka_ertek" value="500 ezer Ft alatt"><span>500 ezer Ft alatt</span></label><label class="chip"><input type="checkbox" name="munka_ertek" value="0,5–2 millió Ft"><span>0,5–2 millió Ft</span></label><label class="chip"><input type="checkbox" name="munka_ertek" value="2–10 millió Ft"><span>2–10 millió Ft</span></label><label class="chip"><input type="checkbox" name="munka_ertek" value="10–50 millió Ft"><span>10–50 millió Ft</span></label><label class="chip"><input type="checkbox" name="munka_ertek" value="50 millió Ft felett"><span>50 millió Ft felett</span></label><label class="chip"><input type="checkbox" name="munka_ertek" value="Egyéb" data-other="munka_ertek_egyeb"><span>Egyéb</span></label></div><input type="text" id="munka_ertek_egyeb" name="munka_ertek_egyeb" placeholder="Egyedi sáv, pl. 3–15 millió Ft" hidden></div>
+      <div class="f"><span>Vállalt munkák időtartama</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="munka_ido" value="1 napnál rövidebb"><span>1 napnál rövidebb</span></label><label class="chip"><input type="checkbox" name="munka_ido" value="1–5 munkanap"><span>1–5 munkanap</span></label><label class="chip"><input type="checkbox" name="munka_ido" value="1–4 hét"><span>1–4 hét</span></label><label class="chip"><input type="checkbox" name="munka_ido" value="1–3 hónap"><span>1–3 hónap</span></label><label class="chip"><input type="checkbox" name="munka_ido" value="3 hónapnál hosszabb"><span>3 hónapnál hosszabb</span></label><label class="chip"><input type="checkbox" name="munka_ido" value="Egyéb" data-other="munka_ido_egyeb"><span>Egyéb</span></label></div><input type="text" id="munka_ido_egyeb" name="munka_ido_egyeb" placeholder="Egyedi, pl. csak hétvégén, 2–6 hét" hidden></div>
+      <div class="grid">
+        <label class="f">Mikor tudsz új munkát kezdeni?<select id="kezdes" name="kezdes"><option value="">Válassz…</option><option>1–2 héten belül</option><option>1 hónapon belül</option><option>2–3 hónap múlva</option><option>Változó, egyeztetés szerint</option></select></label>
+        <label class="f">Havonta kb. hány új munkát tudsz vállalni?<input type="number" id="kapacitas" name="kapacitas_ho" min="0" max="100" inputmode="numeric"></label>
+        <label class="f">Gyorsszerviz, sürgős kiszállás<select id="gyors" name="gyorsszerviz"><option value="">Válassz…</option><option>Igen, akár aznap</option><option>Igen, 1–2 napon belül</option><option>Nem</option></select></label>
+      </div>
+    </fieldset>
+
+    <fieldset id="s4"><legend><div class="sec-h"><span class="n">04</span><h2>Referenciák</h2></div></legend>
+      <p class="hint">2–3 jól sikerült munka elég. Fotónként 4 MB-ig tölthetsz fel; ha sok képed van, adj meg inkább egy albumlinket (Google Fotók, Drive, Facebook). Csak olyan fotót küldj, amelynek közzétételéhez az ügyfél hozzájárult, és amelyen nem látszik személy vagy házszám.</p>
+      <div class="ref"><h3>1. referencia <span class="req" style="color:var(--brass-ink)">*</span></h3>
+        <div class="grid"><label class="f">Munka megnevezése<input type="text" id="r1_cim" name="ref1_cim" required placeholder="pl. Fürdőszoba teljes felújítása"></label><label class="f">Település, év<input type="text" id="r1_hely" name="ref1_hely" placeholder="pl. Budakeszi, 2025"></label></div>
+        <label class="f">Rövid leírás<textarea id="r1_leiras" name="ref1_leiras" placeholder="Mi volt a feladat, mit oldottál meg, mennyi ideig tartott?"></textarea></label>
+        <div class="grid3"><label class="f">Fotó 1<input type="file" id="r1_f1" name="ref1_foto1" accept="image/*"></label><label class="f">Fotó 2<input type="file" id="r1_f2" name="ref1_foto2" accept="image/*"></label><label class="f">Fotó 3<input type="file" id="r1_f3" name="ref1_foto3" accept="image/*"></label></div>
+      </div>
+      <div class="ref"><h3>2. referencia</h3>
+        <div class="grid"><label class="f">Munka megnevezése<input type="text" id="r2_cim" name="ref2_cim"></label><label class="f">Település, év<input type="text" id="r2_hely" name="ref2_hely"></label></div>
+        <label class="f">Rövid leírás<textarea id="r2_leiras" name="ref2_leiras"></textarea></label>
+        <div class="grid3"><label class="f">Fotó 1<input type="file" id="r2_f1" name="ref2_foto1" accept="image/*"></label><label class="f">Fotó 2<input type="file" id="r2_f2" name="ref2_foto2" accept="image/*"></label><label class="f">Fotó 3<input type="file" id="r2_f3" name="ref2_foto3" accept="image/*"></label></div>
+      </div>
+      <div class="ref"><h3>3. referencia</h3>
+        <div class="grid"><label class="f">Munka megnevezése<input type="text" id="r3_cim" name="ref3_cim"></label><label class="f">Település, év<input type="text" id="r3_hely" name="ref3_hely"></label></div>
+        <label class="f">Rövid leírás<textarea id="r3_leiras" name="ref3_leiras"></textarea></label>
+        <div class="grid3"><label class="f">Fotó 1<input type="file" id="r3_f1" name="ref3_foto1" accept="image/*"></label><label class="f">Fotó 2<input type="file" id="r3_f2" name="ref3_foto2" accept="image/*"></label><label class="f">Fotó 3<input type="file" id="r3_f3" name="ref3_foto3" accept="image/*"></label></div>
+      </div>
+      <label class="f">Album vagy további fotók linkje<input type="url" id="album" name="album_link" placeholder="https://"></label>
+    </fieldset>
+
+    <fieldset id="s5"><legend><div class="sec-h"><span class="n">05</span><h2>Profiloldal</h2></div></legend>
+      <p class="hint">A weboldaladat mi írjuk meg és szerkesztjük – élesítés előtt jóváhagyásra elküldjük. Pár mondat tőled sokat segít.</p>
+      <label class="f">Mutatkozz be pár mondatban<textarea id="bemutat" name="bemutatkozas" placeholder="pl. 15 éve foglalkozom fürdőszobák gépészetével. Fontos nekem, hogy a munka után rendet hagyjak, és amit megbeszélünk, az úgy is legyen."></textarea></label>
+      <label class="f">Miben vagy jobb, mint mások?<input type="text" id="erosseg" name="erosseg" placeholder="pl. pontos határidő, tiszta munka, garanciális ügyek gyors intézése"></label>
+      <div class="grid"><label class="f">Logó<input type="file" id="logo" name="logo" accept="image/*"></label><label class="f">Profilfotó (rólad vagy a csapatról)<input type="file" id="profilkep" name="profilkep" accept="image/*"></label></div>
+      <label class="check"><input type="checkbox" id="mi_irjuk" name="szoveg_mi_irjuk" value="igen" checked><span>Kérem, hogy a Rivo csapata fogalmazza meg a profiloldal szövegét, és küldje el jóváhagyásra.</span></label>
+    </fieldset>
+
+    <fieldset id="s6"><legend><div class="sec-h"><span class="n">06</span><h2>Munkamód, preferenciák</h2></div></legend>
+      <div class="grid">
+        <label class="f">Melyik csomag érdekel?<select id="csomag" name="csomag"><option value="">Válassz…</option><option>Alap – profil és ajánlatkezelés</option><option>Pro – saját domain, ügyfélportál, csapat</option><option>Még nem tudom, beszéljük meg</option></select></label>
+        <label class="f">Hány kollégád használná a rendszert?<input type="number" id="userek" name="felhasznalok" min="1" max="200" inputmode="numeric" placeholder="pl. 3"></label>
+        <label class="f">Mennyi saját ügyfeledet vinnéd át a rendszerbe?<select id="sajat" name="sajat_ugyfel"><option value="">Válassz…</option><option>Mindet</option><option>Egy részüket, kipróbálnám</option><option>Egyelőre csak az újakat</option></select></label>
+        <label class="f">Mikor hívhatunk?<input type="text" id="hivas" name="hivhato" placeholder="pl. hétköznap 17 után"></label>
+      </div>
+      <div class="f"><span>Hogyan készítesz most árajánlatot?</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="ajanlat_mod" value="Kézzel, e-mailben vagy üzenetben"><span>Kézzel, e-mailben vagy üzenetben</span></label><label class="chip"><input type="checkbox" name="ajanlat_mod" value="Excelben"><span>Excelben</span></label><label class="chip"><input type="checkbox" name="ajanlat_mod" value="TERC-cel"><span>TERC-cel</span></label><label class="chip"><input type="checkbox" name="ajanlat_mod" value="Más költségvetés-készítő programmal"><span>Más költségvetés-készítő programmal</span></label><label class="chip"><input type="checkbox" name="ajanlat_mod" value="Szóban, a helyszínen"><span>Szóban, a helyszínen</span></label><label class="chip"><input type="checkbox" name="ajanlat_mod" value="Egyéb" data-other="ajanlat_mod_egyeb"><span>Egyéb</span></label></div><input type="text" id="ajanlat_mod_egyeb" name="ajanlat_mod_egyeb" placeholder="pl. Word-sablon, saját szoftver" hidden></div>
+      <div class="f"><span>Milyen fizetési módokat használnál?</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="fizetesi_mod" value="Zárolt, biztonságos fizetés (kártya)"><span>Zárolt, biztonságos fizetés (kártya)</span></label><label class="chip"><input type="checkbox" name="fizetesi_mod" value="Átutalás a teljesítés után"><span>Átutalás a teljesítés után</span></label><label class="chip"><input type="checkbox" name="fizetesi_mod" value="Készpénz"><span>Készpénz</span></label><label class="chip"><input type="checkbox" name="fizetesi_mod" value="Előleg és részszámlák"><span>Előleg és részszámlák</span></label><label class="chip"><input type="checkbox" name="fizetesi_mod" value="Egyéb" data-other="fizetesi_mod_egyeb"><span>Egyéb</span></label></div><input type="text" id="fizetesi_mod_egyeb" name="fizetesi_mod_egyeb" placeholder="pl. bankgarancia, 30 napos fizetési határidő" hidden></div>
+      <div class="f"><span>Hogyan értesítsünk?</span><small>Többet is jelölhetsz.</small><div class="chips"><label class="chip"><input type="checkbox" name="ertesites" value="E-mail"><span>E-mail</span></label><label class="chip"><input type="checkbox" name="ertesites" value="SMS"><span>SMS</span></label><label class="chip"><input type="checkbox" name="ertesites" value="Telefonhívás"><span>Telefonhívás</span></label><label class="chip"><input type="checkbox" name="ertesites" value="Egyéb" data-other="ertesites_egyeb"><span>Egyéb</span></label></div><input type="text" id="ertesites_egyeb" name="ertesites_egyeb" placeholder="pl. WhatsApp, Viber" hidden></div>
+      <div class="f">Mi érdekel a rendszerből a legjobban?
+        <div class="chips">
+          <label class="chip"><input type="checkbox" name="erdekel" value="Új megrendelések"><span>Új megrendelések</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Profi ajánlat- és szerződésminták"><span>Profi ajánlat- és szerződésminták</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Biztos fizetés (zárolt összeg)"><span>Biztos fizetés (zárolt összeg)</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Saját weboldal, profil"><span>Saját weboldal, profil</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Kevesebb adminisztráció"><span>Kevesebb adminisztráció</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Generálkivitelezői alvállalkozás"><span>Generálkivitelezői alvállalkozás</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Projektmenedzsment saját alvállalkozókkal"><span>Projektmenedzsment saját alvállalkozókkal</span></label>
+          <label class="chip"><input type="checkbox" name="erdekel" value="Egyéb" data-other="erdekel_egyeb"><span>Egyéb</span></label>
+        </div>
+        <input type="text" id="erdekel_egyeb" name="erdekel_egyeb" placeholder="Mi érdekelne még?" hidden>
+      </div>
+    </fieldset>
+
+    <fieldset id="s7"><legend><div class="sec-h"><span class="n">07</span><h2>Egyéb, hozzájárulás</h2></div></legend>
+      <label class="f">Bármi, amit hozzátennél<textarea id="egyeb" name="egyeb" placeholder="Kérdés, ötlet, kérés a rendszerrel kapcsolatban"></textarea></label>
+      <div class="f"><span>Fájlok csatolása</span><small>Pl. árlista, minta-árajánlat, tanúsítvány, bemutatkozó anyag, további fotók. Fájlonként 4 MB-ig, legfeljebb 6 fájl.</small><div class="grid" id="efiles"><label class="f efile">Fájl 1<input type="file" id="egyeb_fajl1" name="egyeb_fajl1" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label><label class="f efile" hidden>Fájl 2<input type="file" id="egyeb_fajl2" name="egyeb_fajl2" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label><label class="f efile" hidden>Fájl 3<input type="file" id="egyeb_fajl3" name="egyeb_fajl3" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label><label class="f efile" hidden>Fájl 4<input type="file" id="egyeb_fajl4" name="egyeb_fajl4" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label><label class="f efile" hidden>Fájl 5<input type="file" id="egyeb_fajl5" name="egyeb_fajl5" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label><label class="f efile" hidden>Fájl 6<input type="file" id="egyeb_fajl6" name="egyeb_fajl6" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.csv,.zip"></label></div><button type="button" class="addfile" id="addfile">+ További fájl</button></div>
+      <div class="terms">
+        <strong>Az alapító partneri program röviden</strong>
+        <ul>
+          <li>A <strong>bevezetés</strong> alatt – amíg megtervezzük, felépítjük és a munkamódodra szabjuk a weboldaladat és a rendszeredet – minden díjmentes. A saját ügyfeleiddel közben már használhatod.</li>
+          <li>A rendszert a <strong>saját ügyfeleiddel</strong> használod. Zárolt kártyás fizetésnél csak a fizetési szolgáltató díját adjuk tovább; átutalásnál és készpénznél ez sincs.</li>
+          <li>Alapító partnerként <strong>díjmentes a Pro csomag</strong> – a bevezetés alatt és a rendszer éles indulásától számított 12 hónapig. Az Alap csomag utána is ingyenes.</li>
+          <li>A kedvezmény feltételhez kötött: megszűnik 2 jogos megrendelői kifogás vagy elvesztett vita, 4,0 alatti átlagértékelés, a rendszer megkerülése, szerződésszegés vagy 6 hónap inaktivitás esetén.</li>
+          <li>A jelentkezés nem kötelez semmire, és még nem szerződés. Külön papíralapú szerződést nem kell kötnöd: a fiókod aktiválásakor online fogadod el a Felhasználási feltételeket (ÁSZF) és az adatfeldolgozási feltételeket, erről e-mailben visszaigazolást kapsz.</li>
+        </ul>
+      </div>
+      <label class="check"><input type="checkbox" id="adatkez" name="adatkezeles" value="elfogadva" required><span>Megismertem az <a href="#adatkezeles">adatkezelési tájékoztatót</a>. Tudomásul veszem, hogy a General Contractor Team Kft., a Rivo üzemeltetője, a megadott adataimat a jelentkezés elbírálása, a kapcsolatfelvétel és a weboldalam előkészítése céljából kezeli. <span class="req" style="color:var(--brass-ink)">*</span></span></label>
+      <label class="check"><input type="checkbox" id="fotok" name="fotok_kozzetehetok" value="igen"><span>A feltöltött referenciafotók a profiloldalamon közzétehetők; az érintett ügyfelek hozzájárultak.</span></label>
+      <label class="check"><input type="checkbox" id="feltetel" name="alapito_feltetelek" value="elfogadva"><span>Megismertem az alapító partneri program feltételeit.</span></label>
+    </fieldset>
+
+    <div id="errbox" class="err" role="alert" hidden></div>
+    <div class="actions"><button class="btn" type="submit" id="send">Jelentkezés elküldése</button><span class="saved" id="saved" aria-live="polite"></span></div>
+  </form>
+
+  <div id="done" class="done" hidden>
+    <h2>Köszönjük a jelentkezést!</h2>
+    <p style="margin:0">Pár napon belül felhívunk, és megbeszéljük a profiloldaladat. A szöveget indulás előtt jóváhagyásra elküldjük.</p>
+    <p class="hint" id="donenote"></p>
+    <div class="actions"><button class="btn sec" type="button" id="again">Új adatlap kitöltése</button></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var f=document.getElementById('pf'),KEY='gt_partner_draft_v2',saved=document.getElementById('saved');
+  /* vázlat mentése ebben a böngészőben (a fájlok kivételével) */
+  function collect(){var o={};f.querySelectorAll('input,select,textarea').forEach(function(el){if(!el.id||el.type==='file'||el.type==='hidden')return;o[el.id]=(el.type==='checkbox')?el.checked:el.value});
+    o._chips={};f.querySelectorAll('.chips input').forEach(function(el,i){o._chips[i]=el.checked});return o}
+  function restore(){var o;try{o=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){o=null}if(!o)return;
+    Object.keys(o).forEach(function(k){var el=document.getElementById(k);if(!el)return;if(el.type==='checkbox')el.checked=!!o[k];else el.value=o[k]});
+    if(o._chips)f.querySelectorAll('.chips input').forEach(function(el,i){el.checked=!!o._chips[i]});saved.textContent='A korábban elkezdett adatlapot visszatöltöttük.'}
+  var t;f.addEventListener('input',function(){clearTimeout(t);t=setTimeout(function(){try{localStorage.setItem(KEY,JSON.stringify(collect()));saved.textContent='Vázlat mentve ebben a böngészőben.'}catch(e){}},600)});
+  /* Egyéb minden választónál: a lista végén, és megjelenít egy szövegmezőt */
+  [].forEach.call(f.querySelectorAll('select'),function(sel){var o=document.createElement('option');o.value='Egyéb';o.textContent='Egyéb (beírom)';sel.appendChild(o);
+    var inp=document.createElement('input');inp.type='text';inp.id=sel.id+'_egyeb';inp.name=sel.name+'_egyeb';inp.placeholder='Írd be';inp.hidden=true;sel.insertAdjacentElement('afterend',inp);
+    sel._tg=function(){inp.hidden=sel.value!=='Egyéb'};sel.addEventListener('change',sel._tg)});
+  function chipOther(){[].forEach.call(f.querySelectorAll('input[data-other]'),function(c){var t=document.getElementById(c.dataset.other);if(t)t.hidden=!c.checked})}
+  f.addEventListener('change',chipOther);
+  restore();chipOther();[].forEach.call(f.querySelectorAll('select'),function(sel){sel._tg&&sel._tg()});
+  f.addEventListener('submit',function(e){e.preventDefault();var err=[],box=document.getElementById('errbox');
+    f.querySelectorAll('[required]').forEach(function(el){var ok=el.type==='checkbox'?el.checked:String(el.value).trim()!=='';el.style.borderColor=ok?'':'var(--bad)';if(!ok)err.push(el.type==='checkbox'?'Adatkezelési hozzájárulás':(el.closest('label')?el.closest('label').firstChild.textContent.replace('*','').trim():el.name))});
+    if(!f.querySelector('input[name=szakag]:checked')&&!document.getElementById('szakag_egyeb').value.trim())err.push('Szakág');
+    if(!f.querySelector('input[name=terulet]:checked'))err.push('Hol dolgozol?');
+    var em=document.getElementById('email').value;if(em&&!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em))err.push('E-mail (formátum)');
+    var big=[];[].forEach.call(f.querySelectorAll('input[type=file]'),function(i){[].forEach.call(i.files,function(x){if(x.size>4*1024*1024)big.push(x.name)})});if(big.length)err.push('Túl nagy fájl (max. 4 MB): '+big.join(', '));
+    if(err.length){box.hidden=false;box.textContent='Kérjük, pótold: '+err.join(' · ');box.scrollIntoView({behavior:'smooth',block:'center'});return}
+    box.hidden=true;var btn=document.getElementById('send');btn.disabled=true;btn.textContent='Küldés…';
+    var live=/(netlify\.app|generalteam\.hu)$/.test(location.hostname);
+    var finish=function(note){f.hidden=true;var d=document.getElementById('done');d.hidden=false;document.getElementById('donenote').textContent=note||'';try{localStorage.removeItem(KEY)}catch(e){}d.scrollIntoView({behavior:'smooth'})};
+    if(hasGas()){saveGas().then(function(){finish('Köszönjük, a jelentkezésed megérkezett – hamarosan keresünk!')}).catch(function(e){btn.disabled=false;btn.textContent='Jelentkezés elküldése';box.hidden=false;box.textContent='A küldés nem sikerült ('+(e&&e.message||e)+'). Próbáld újra pár perc múlva.'});return}
+    if(!live){saveDb().then(function(ok){if(ok){finish('Elmentve. Köszönjük – hamarosan keresünk!');loadOwner()}else{finish('Ez az adatlap előnézete: élesben a jelentkezés a Rivo (GeneralTeam) postafiókjába érkezik, a fotókkal együtt.')}}).catch(function(){btn.disabled=false;btn.textContent='Jelentkezés elküldése';box.hidden=false;box.textContent='A mentés nem sikerült. Próbáld újra pár másodperc múlva.'});return}
+    fetch('/',{method:'POST',body:new FormData(f)}).then(function(r){if(!r.ok)throw new Error(r.status);finish('')}).catch(function(){btn.disabled=false;btn.textContent='Jelentkezés elküldése';box.hidden=false;box.textContent='A küldés nem sikerült (lehet, hogy túl nagyok a fotók, összesen legfeljebb 8 MB). Próbáld kevesebb fotóval, vagy add meg az albumlinket.'});
+  });
+  /* küldés a Google Drive-ra (Apps Script): a Google által kiszolgált oldalon közvetlenül, más tárhelyről a GAS_URL-en át */
+  var GAS_URL='https://script.google.com/macros/s/AKfycbxYgeSJEPj4zQlQoxu1woLnLV8YQdEm2bXwhjzd2IbayPJULP6pmNfQOj3PonUnmEnA/exec';
+  function hasGas(){return !!((window.google&&google.script&&google.script.run)||GAS_URL)}
+  function gas(d){if(window.google&&google.script&&google.script.run){return new Promise(function(res,rej){google.script.run.withSuccessHandler(function(r){r&&r.ok?res(r):rej(new Error(r&&r.hiba||'ismeretlen hiba'))}).withFailureHandler(rej).rivoApi(d)})}
+    return fetch(GAS_URL,{method:'POST',body:JSON.stringify({ten:'gt',fn:'partnerJel',args:[d]}),credentials:'omit',redirect:'follow'}).then(function(r){return r.json()}).then(function(j){if(j&&j.err)throw new Error(j.err);var r=j&&j.res;if(!r||!r.ok)throw new Error('hiba');return r})}
+  function b64(file){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(String(r.result).split(',')[1]||'')};r.onerror=rej;r.readAsDataURL(file)})}
+  async function saveGas(){var rec={},fd=new FormData(f);fd.forEach(function(v,k){if(typeof v!=='string'||k==='form-name')return;if(rec[k]!==undefined)rec[k]=[].concat(rec[k],v);else rec[k]=v});
+    if(rec.hp)return true;delete rec.hp;
+    var btn=document.getElementById('send');var r=await gas({action:'submit',fields:rec});
+    var ins=[].slice.call(f.querySelectorAll('input[type=file]')),list=[];ins.forEach(function(i){[].forEach.call(i.files,function(x){list.push({mezo:i.name,file:x})})});
+    for(var k=0;k<list.length;k++){btn.textContent='Fájlok feltöltése… '+(k+1)+'/'+list.length;var it=list[k];await gas({action:'file',id:r.id,token:r.token,mezo:it.mezo,nev:it.file.name,type:it.file.type,data:await b64(it.file)})}
+    btn.textContent='Befejezés…';try{await gas({action:'done',id:r.id,token:r.token,fields:rec})}catch(_){}
+    return true}
+  /* mentés a Rivo-adatbázisba (ha az oldal a claude.ai-ban, bejelentkezve nyílik meg) */
+  function cl(){return window.claude&&window.claude.use?window.claude:null}
+  async function saveDb(){var c=cl();if(!c)return false;var db=await c.use('db');if(!db)return false;var assets=null;try{assets=await c.use('assets')}catch(_){}
+    var rec={},fd=new FormData(f);fd.forEach(function(v,k){if(typeof v!=='string'||k==='hp'||k==='form-name')return;if(rec[k]!==undefined)rec[k]=[].concat(rec[k],v);else rec[k]=v});
+    var files=[];if(assets){var ins=f.querySelectorAll('input[type=file]');for(var i=0;i<ins.length;i++){for(var j=0;j<ins[i].files.length;j++){try{var a=await assets.upload(ins[i].files[j]);files.push({mezo:ins[i].name,nev:ins[i].files[j].name,id:a.id})}catch(e){}}}}
+    rec._fajlok=files;rec._bekuldve=new Date().toISOString();await db.collection('jelentkezesek').add(rec);return true}
+  async function loadOwner(){var c=cl();if(!c)return;var u=await c.use('user');if(!u||!u.isOwner())return;var db=await c.use('db');if(!db)return;var o=document.getElementById('owner');o.hidden=false;
+    try{var q=await db.collection('jelentkezesek').orderBy('_bekuldve','desc').get();var l=document.getElementById('olist');l.textContent='';
+      if(!q.docs.length){l.textContent='Még nincs beküldött adatlap.';return}
+      q.docs.forEach(function(d){var x=d.data();var p=document.createElement('div');p.style.cssText='padding:8px 0;border-top:1px solid var(--line)';
+        p.textContent=(x.ceg||'–')+' · '+(x.nev||'')+' · '+(x.telefon||'')+' · '+(x.email||'')+' · '+String(x._bekuldve||'').slice(0,10)+((x._fajlok||[]).length?' · '+x._fajlok.length+' fájl':'');l.appendChild(p)})}
+    catch(e){document.getElementById('olist').textContent='A lista most nem tölthető be.'}}
+  setTimeout(loadOwner,50);
+  document.getElementById('again').addEventListener('click',function(){f.reset();try{localStorage.removeItem(KEY)}catch(_){}document.getElementById('done').hidden=true;f.hidden=false;var b=document.getElementById('send');b.disabled=false;b.textContent='Jelentkezés elküldése';chipOther();window.scrollTo({top:0,behavior:'smooth'})});
+})();
+
+(function(){var b=document.getElementById('addfile');if(!b)return;function upd(){var h=document.querySelectorAll('#efiles .efile[hidden]');b.hidden=!h.length}
+b.addEventListener('click',function(){var h=document.querySelector('#efiles .efile[hidden]');if(h){h.hidden=false;var i=h.querySelector('input');if(i)i.click()}upd()});
+document.getElementById('pf').addEventListener('reset',function(){[].forEach.call(document.querySelectorAll('#efiles .efile'),function(l,k){if(k>0)l.hidden=true});upd()});upd()})();
+</script>
+<script>
+(function(){var Q={};location.search.replace(/^\?/,'').split('&').forEach(function(x){if(!x)return;var a=x.split('=');try{Q[decodeURIComponent(a[0])]=decodeURIComponent((a[1]||'').replace(/\+/g,' '))}catch(_){}});
+  if(!Q.nev&&!Q.email&&!Q.forras)return;var f=document.getElementById('pf');if(!f)return;
+  function set(n,v){var i=f.querySelector('[name="'+n+'"]');if(i&&v&&!i.value){i.value=String(v).slice(0,200);i.dispatchEvent(new Event('input',{bubbles:true}))}}
+  function hid(n,v){if(!v)return;var i=f.querySelector('input[type=hidden][name="'+n+'"]');if(!i){i=document.createElement('input');i.type='hidden';i.name=n;f.appendChild(i)}i.value=String(v).slice(0,80)}
+  setTimeout(function(){set('nev',Q.nev);set('email',Q.email);set('telefon',Q.telefon);hid('forras',Q.forras);hid('projekt',Q.projekt);
+    if(Q.szakag){var z=Q.szakag.toLowerCase().replace(/[^a-záéíóöőúüű]/g,''),hit=false;[].forEach.call(f.querySelectorAll('input[name="szakag"]'),function(c){var v=c.value.toLowerCase().replace(/[^a-záéíóöőúüű]/g,'');if(z.length>3&&(v.indexOf(z)>=0||z.indexOf(v.slice(0,6))>=0||(z.indexOf('burkol')>=0&&v==='hidegburkolás'))){if(!c.checked){c.checked=true;c.dispatchEvent(new Event('change',{bubbles:true}))}hit=true}});
+      if(!hit){set('szakag_egyeb',Q.szakag);var e=[].filter.call(f.querySelectorAll('input[name="szakag"]'),function(c){return /^egyéb/i.test(c.value)})[0];if(e&&!e.checked){e.checked=true;e.dispatchEvent(new Event('change',{bubbles:true}))}}}
+    if(Q.forras==='alv'){var n=document.createElement('p');n.className='lead-note';n.style.cssText='background:#E8EFF7;border-radius:8px;padding:10px 14px;font-size:14px;margin:0 0 14px';n.textContent='Az adataidat a projektfelületedről előre kitöltöttük – nézd át, és egészítsd ki.';f.insertBefore(n,f.firstChild)}},120)})();
+</script>
+
+</html>

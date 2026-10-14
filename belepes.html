@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Belépés – GeneralTeam</title>
+<meta name="description" content="Belépés megrendelőknek, ajánlatkérőknek, szakági kivitelezőknek és a GeneralTeam irodának.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="site.css">
+</head>
+<body>
+<header class="hdr"><div class="wrap"><a class="brand" href="index.html" aria-label="GeneralTeam – kezdőlap"><svg width="40" height="40" viewBox="0 0 48 48" aria-hidden="true"><rect width="48" height="48" rx="8" fill="#0F2B36"/><path d="M9 18L24 9l15 9" fill="none" stroke="#C49A5C" stroke-width="3" stroke-linecap="square"/><path d="M21 24H12v15h9v-7h-4" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/><path d="M26 24h12M32 24v15" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="square"/></svg><span><b>General<span style="color:#8A6430">Team</span></b><small>GENERÁLKIVITELEZÉS</small></span></a><nav class="nav" aria-label="Fő menü"><a href="szolgaltatasok.html">Szolgáltatások</a><a href="referenciak.html">Referenciák</a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="index.html#feltetelek">Árak</a><a href="index.html#gyik">GYIK</a><a href="belepes.html" aria-current="page">Belépés</a></nav><a class="tel" href="tel:+36706276706">+36 70 627 67 06</a><a class="btn" href="index.html#ajanlatkeres">Ajánlatot kérek</a></div><nav class="mnav" aria-label="Oldalak"><a href="szolgaltatasok.html">Szolgáltatások</a><a href="referenciak.html">Referenciák</a><a href="belsoepiteszet.html">Belsőépítészet</a><a href="index.html#ajanlatkeres">Ajánlatkérés</a><a href="belepes.html">Belépés</a></nav></header>
+<main id="top">
+<div class="phero"><div class="grid-bg" aria-hidden="true"></div><div class="wrap"><p class="crumb"><a href="index.html">Kezdőlap</a> / Belépés</p><h1>Belépés</h1><p class="lead">Jelszó nélkül: adja meg az e-mail címét, és elküldjük a személyes belépési linkjét. Mindenki csak a saját ügyét látja.</p></div></div>
+<section><div class="wrap">
+<div class="paths lgn">
+ <form class="path hl" data-kind="ugyfel" novalidate>
+  <span class="tag">Megrendelőknek és ajánlatkérőknek</span>
+  <h3>Az Ön projektje</h3>
+  <p class="muted">Ajánlat, ütemterv, dokumentumok, jóváhagyások és üzenetek – a futó munkáról és az ajánlatkérés állapotáról.</p>
+  <label class="fld">E-mail cím<input type="email" name="email" autocomplete="email" required placeholder="nev@pelda.hu"></label>
+  <button class="btn brass" type="submit">Belépési link kérése</button>
+  <p class="msg" role="status" hidden></p>
+ </form>
+ <form class="path" data-kind="alv" novalidate>
+  <span class="tag">Szakági kivitelezőknek</span>
+  <h3>Alvállalkozói felület</h3>
+  <p class="muted">A rád vonatkozó munkák, határidők, mérföldkövek, a saját ajánlatod és az üzenetek. Más ajánlatát és az ügyfél adatait nem látod.</p>
+  <label class="fld">E-mail cím<input type="email" name="email" autocomplete="email" required placeholder="nev@pelda.hu"></label>
+  <button class="btn" type="submit">Belépési link kérése</button>
+  <p class="msg" role="status" hidden></p>
+ </form>
+ <form class="path" data-kind="iroda" novalidate>
+  <span class="tag">GeneralTeam iroda</span>
+  <h3>Generálkivitelező</h3>
+  <p class="muted">Megkeresések, ajánlatkészítő, projektek, ütemezés, alvállalkozók és partnerek.</p>
+  <label class="fld">Irodakulcs<input type="password" name="k" autocomplete="current-password" required placeholder="••••••••••••••••"></label>
+  <label class="chk"><input type="checkbox" name="rem"><span>Ezen az eszközön maradjak belépve</span></label>
+  <button class="btn" type="submit">Belépés az irodába</button>
+  <p class="msg" role="status" hidden></p>
+ </form>
+</div>
+<p class="muted" style="margin-top:22px;font-size:14px">Még nem kért ajánlatot? <a href="index.html#ajanlatkeres">Ajánlatkérés itt</a>. Ha nem kapja meg a levelet, nézze meg a levélszemét mappát is, vagy hívjon: <a href="tel:+36706276706">+36 70 627 67 06</a>.</p>
+</div></section>
+</main>
+<style>.lgn .path{display:flex;flex-direction:column;gap:12px}.lgn .path .btn{align-self:flex-start}.lgn .msg{font-size:14px;padding:10px 12px;border-radius:8px;background:#E3F2EA;color:#1F5A3B}.lgn .msg.bad{background:#FBE9E7;color:#9C2A20}.lgn .tag{position:static;align-self:flex-start}</style>
+<script>
+(function(){var API='https://script.google.com/macros/s/AKfycbxYgeSJEPj4zQlQoxu1woLnLV8YQdEm2bXwhjzd2IbayPJULP6pmNfQOj3PonUnmEnA/exec',KK='gt_iroda_k';
+ function kOk(k){return /^[0-9a-f]{16}$/i.test(k)}
+ try{var sk=localStorage.getItem(KK);if(sk&&kOk(sk)){var f0=document.querySelector('[data-kind=iroda]');f0.querySelector('[name=k]').value=sk;f0.querySelector('[name=rem]').checked=true}}catch(_){}
+ [].forEach.call(document.querySelectorAll('.lgn form'),function(f){f.addEventListener('submit',function(e){e.preventDefault();var m=f.querySelector('.msg'),b=f.querySelector('button'),kind=f.dataset.kind;
+  function say(t,bad){m.hidden=false;m.textContent=t;m.className='msg'+(bad?' bad':'')}
+  if(kind==='iroda'){var k=f.querySelector('[name=k]').value.trim();if(!kOk(k)){say('Ez nem érvényes irodakulcs.',1);return}
+   try{if(f.querySelector('[name=rem]').checked)localStorage.setItem(KK,k);else localStorage.removeItem(KK)}catch(_){}
+   location.href='iroda.html?k='+encodeURIComponent(k);return}
+  var em=f.querySelector('[name=email]').value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){say('Kérjük, érvényes e-mail címet adjon meg.',1);return}
+  b.disabled=true;b.textContent='Küldés…';
+  fetch(API,{method:'POST',body:JSON.stringify({ten:'gt',fn:'belepesLink',args:[em,kind]}),credentials:'omit'}).then(function(r){return r.json()}).then(function(j){if(j&&j.err)throw new Error(j.err);
+   say('Ha ehhez a címhez tartozik '+(kind==='alv'?'munka':'projekt vagy ajánlatkérés')+', néhány percen belül megérkezik a belépési link. A link személyes, ne továbbítsa.')})
+  .catch(function(x){say((x&&x.message)||'Nem sikerült elküldeni, kérjük, próbálja újra.',1)}).then(function(){b.disabled=false;b.textContent='Belépési link kérése'})})})})();
+</script>
+<footer>
+  <div class="wrap">
+    <div><b>General Contractor Team Kft.</b><br>2051 Biatorbágy, Nimród utca 30.<br>Cégjegyzékszám: 01 09 204112<br>Adószám: 25174032-2-13</div>
+    <div><b>Elérhetőség</b><br><a href="tel:+36706276706">+36 70 627 67 06</a><br><a href="mailto:info@generalteam.hu">info@generalteam.hu</a><br>Hétköznap 8–17</div>
+    <div><b>Működési terület</b><br>Budapest, Pest megye,<br>Biatorbágy 60 km-es körzete</div>
+    <div><b>Oldalak</b><br><a href="szolgaltatasok.html">Szolgáltatások</a><br><a href="referenciak.html">Referenciák</a><br><a href="belsoepiteszet.html">Belsőépítészet – partnerünk</a><br><a href="belepes.html">Belépés ügyfeleknek és partnereknek</a></div><div class="bot">© <span id="yr"></span> General Contractor Team Kft. · Az ajánlatkérő a Rivo rendszerrel működik.</div>
+  </div>
+</footer>
+<div class="mcta"><a class="btn ghost" href="tel:+36706276706">Hívás</a><a class="btn brass" href="#ajanlatkeres">Ajánlatot kérek</a></div>
+<script>document.getElementById("yr")&&(document.getElementById("yr").textContent=new Date().getFullYear())</script>
+</body>
+</html>

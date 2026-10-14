@@ -144,6 +144,7 @@ function thumb(f){var id=driveId(f[2]);return '<a href="'+esc(f[2]||'#')+'" targ
 var UI={mv:null,dl:null,nw:false,mtext:'',mfiles:[],szn:''};
 function reqText(r){var dt=function(x){return x&&x.d?fd(x.d)+(x.t?' '+esc(x.t):''):''};
   if(r.type==='ev')return esc(r.c||'Időpont')+': '+dt(r.from)+' → <b>'+dt(r.to)+'</b>';
+  if(r.type==='mod')return '<b>Új munkanem: '+esc(r.c||'')+'</b>'+((r.lines||[]).length>1||((r.lines||[])[0]||[])[2]?'<br>'+(r.lines||[]).map(function(l){return esc(l[0])+(l[2]?' – '+esc(l[2]):'')+': '+ft(l[1])+' + áfa'}).join('<br>'):'')+'<br>Díja összesen: <b>'+ft(r.amt||0)+' + áfa</b>'+(r.to&&r.to.k?'<br>Tervezett időpont: <b>'+fd(r.to.k)+' – '+fd(r.to.d)+'</b>':'');
   if(r.type==='dl')return 'Határidő · '+esc(r.c||'')+': '+dt(r.from)+' → <b>'+dt(r.to)+'</b>';
   return 'Új időpont: '+esc(r.c||'')+' · <b>'+dt(r.to)+'</b>'}
 function myPend(p,type,ref){return (p.req||[]).filter(function(r){return r.by==='u'&&r.st==='pending'&&r.type===type&&String(r.ref)===String(ref)})[0]}
@@ -223,7 +224,7 @@ function render(){
        '</div>'});
   /* a vállalkozó javaslatai: elfogadás vagy elutasítás */
   (p.req||[]).forEach(function(r){if(r.by!=='z'||r.st!=='pending')return;
-    h+='<div class="card hl"><span class="tag">Módosítási javaslatunk</span><p>'+reqText(r)+'</p>'+(r.note?'<p class="muted" style="font-size:14px">„'+esc(r.note)+'”</p>':'')+'<label class="muted" for="rv_'+r.id+'" style="font-size:14px">Megjegyzés (nem kötelező)</label><textarea id="rv_'+r.id+'" style="min-height:60px"></textarea><div class="actions"><button class="btn" data-rv="'+r.id+'|ok">Elfogadom</button><button class="btn sec" data-rv="'+r.id+'|no">Nem jó</button></div><p class="note">Elfogadás után a módosítás mindenhol átvezetődik, a naptárban is.</p></div>'});
+    h+='<div class="card hl"><span class="tag">'+(r.type==='mod'?'Szerződésmódosítás – írásos jóváhagyás':'Módosítási javaslatunk')+'</span><p>'+reqText(r)+'</p>'+(r.note?'<p class="muted" style="font-size:14px">„'+esc(r.note)+'”</p>':'')+'<label class="muted" for="rv_'+r.id+'" style="font-size:14px">Megjegyzés (nem kötelező)</label><textarea id="rv_'+r.id+'" style="min-height:60px"></textarea><div class="actions"><button class="btn" data-rv="'+r.id+'|ok">Elfogadom</button><button class="btn sec" data-rv="'+r.id+'|no">Nem jó</button></div><p class="note">'+(r.type==='mod'?'Az „Elfogadom” írásbeli megrendelésnek minősül: a munka a díjjal és az időponttal a vállalkozási szerződés részévé válik. Ha nem kéri, nyomja meg a „Nem jó” gombot.':'Elfogadás után a módosítás mindenhol átvezetődik, a naptárban is.')+'</p></div>'});
   /* szerződés (ha a vállalkozó online kötötte) */
   var z=p.szerz;
   if(z&&(z.st==='sent'||z.st==='done')){

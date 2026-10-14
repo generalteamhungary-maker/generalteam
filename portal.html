@@ -178,8 +178,7 @@ function offerDoc(o,m,D8){var e=esc;
    (o.afa!=null&&!(o.items&&o.items.length)?'<p>'+(o.rev?'Az ajánlat fordított adózás alá esik.':'ÁFA 27%: '+ft(+o.afa||0)+' · Bruttó összesen: <b>'+ft((+o.sum||0)+(+o.afa||0))+'</b>')+'</p>':'')+
    (att?'<b>Mellékletek</b><ul>'+att+'</ul>':'')+
    (o.src==='proj'?'<p class="s">A projekt adataiból összesítve.</p>':'')+
-   (o.erv?'<p class="s">Az ajánlat érvényessége: '+D8(o.erv)+'</p>':'')+'<p style="text-align:center;font-size:12.5px;color:#6b7075;margin:24px 16px 40px">General Contractor Team Kft. · <a href="adatvedelem.html" style="color:inherit">Adatkezelési tájékoztató</a> · <a href="aszf.html" style="color:inherit">ÁSZF</a> · <a href="impresszum.html" style="color:inherit">Impresszum</a></p>
-</body></html>'}
+   (o.erv?'<p class="s">Az ajánlat érvényessége: '+D8(o.erv)+'</p>':'')+'</body></html>'}
 function openDoc(html){var u=URL.createObjectURL(new Blob([html],{type:'text/html;charset=utf-8'})),w=window.open(u,'_blank');if(!w){var a=document.createElement('a');a.href=u;a.target='_blank';document.body.appendChild(a);a.click();a.remove()}}
 
 function vis(d){return d&&!d[4]}
@@ -327,4 +326,5 @@ app.addEventListener('change',function(e){var t=e.target;if(t.id==='um_f'){UI.mf
 google.script.run.withSuccessHandler(function(res){D=res;render()}).withFailureHandler(function(err){app.innerHTML='<div class="err">'+esc(err&&err.message||err)+'</div>'}).portalBetolt(CFG.pid,CFG.t);
 })();
 </script>
+<p style="text-align:center;font-size:12.5px;color:#6b7075;margin:24px 16px 40px">General Contractor Team Kft. · <a href="adatvedelem.html" style="color:inherit">Adatkezelési tájékoztató</a> · <a href="aszf.html" style="color:inherit">ÁSZF</a> · <a href="impresszum.html" style="color:inherit">Impresszum</a></p>
 </body></html>

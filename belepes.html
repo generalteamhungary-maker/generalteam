@@ -31,6 +31,14 @@
   <button class="btn" type="submit">Belépési link kérése</button>
   <p class="msg" role="status" hidden></p>
  </form>
+ <form class="path" data-kind="partner" novalidate>
+  <span class="tag">Partnereknek</span>
+  <h3>Partneriroda</h3>
+  <p class="muted">Tervezőknek, belsőépítészeknek és szakági partnereknek: a saját irodád a megkeresésekkel, ajánlatokkal, projektekkel és ügyfélportálokkal.</p>
+  <label class="fld">E-mail cím<input type="email" name="email" autocomplete="email" required placeholder="nev@pelda.hu"></label>
+  <button class="btn" type="submit">Belépési link kérése</button>
+  <p class="msg" role="status" hidden></p>
+ </form>
  <form class="path" data-kind="iroda" novalidate>
   <span class="tag">GeneralTeam iroda</span>
   <h3>Generálkivitelező</h3>
@@ -64,7 +72,7 @@
   var em=f.querySelector('[name=email]').value.trim();if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){say('Kérjük, érvényes e-mail címet adjon meg.',1);return}
   b.disabled=true;b.textContent='Küldés…';
   fetch(API,{method:'POST',body:JSON.stringify({ten:'gt',fn:'belepesLink',args:[em,kind]}),credentials:'omit'}).then(function(r){return r.json()}).then(function(j){if(j&&j.err)throw new Error(j.err);
-   say('Ha ehhez a címhez tartozik '+(kind==='alv'?'munka':'projekt vagy ajánlatkérés')+', néhány percen belül megérkezik a belépési link. A link személyes, ne továbbítsa.')})
+   say('Ha ehhez a címhez tartozik '+(kind==='alv'?'munka':(kind==='partner'?'partneriroda':'projekt vagy ajánlatkérés'))+', néhány percen belül megérkezik a belépési link. A link személyes, ne továbbítsa.')})
   .catch(function(x){say((x&&x.message)||'Nem sikerült elküldeni, kérjük, próbálja újra.',1)}).then(function(){b.disabled=false;b.textContent='Belépési link kérése'})})})})();
 </script>
 <footer>

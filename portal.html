@@ -8,6 +8,7 @@ function call(fn,args,ok,fail){fetch(API,{method:'POST',body:JSON.stringify({ten
 function runner(){var ok=null,fail=null,p;p=new Proxy({},{get:function(_,name){if(name==='withSuccessHandler')return function(f){ok=f;return p};if(name==='withFailureHandler')return function(f){fail=f;return p};return function(){call(String(name),[].slice.call(arguments),ok,fail)}}});return p}
 window.google={script:{}};Object.defineProperty(window.google.script,'run',{get:runner});})();
 </script><meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ügyfélportál – GeneralTeam</title>
 <link rel="stylesheet" href="fonts/fonts.css">

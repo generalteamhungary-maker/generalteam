@@ -23,6 +23,18 @@ window.google={script:{}};Object.defineProperty(window.google.script,'run',{get:
   --display:'Archivo',system-ui,sans-serif; --body:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
 }
 html,:root[data-theme]{color-scheme:light}
+.hdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--muted)}.hdot.ok{background:var(--ok)}.hdot.warn{background:#D9A400}.hdot.bad{background:var(--bad)}
+.p-brass{background:var(--brass-tint);color:#7A5A2A}
+.qsbtn{display:flex;justify-content:space-between;align-items:center;background:var(--soft)!important;border:1px solid var(--line)!important;color:var(--muted)!important;margin-bottom:8px;font-weight:500!important}.qsbtn .kbd{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 5px}
+#qs{position:fixed;inset:0;background:rgba(15,43,54,.45);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:10vh 16px}
+#qs .qsb{background:var(--surface);border-radius:12px;width:min(640px,100%);box-shadow:0 20px 60px rgba(0,0,0,.3);padding:12px;max-height:70vh;overflow:auto}
+#qs input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;font-size:16px}
+#qs .row.sel{background:var(--brand-tint);border-radius:8px;padding-left:8px;padding-right:8px}
+.gantt.pf .lab{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:0}.lnkb{background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--brand);cursor:pointer;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.lnkb:hover{text-decoration:underline}
+.ptabs button .hdot{margin-right:6px}
+.la{display:grid;gap:10px}.lad{border-top:1px solid var(--line);padding-top:8px}.lah{font-weight:700;font-size:13.5px;margin-bottom:4px}.lah.today{color:var(--brand)}.lar{display:flex;flex-wrap:wrap;gap:4px 8px;align-items:baseline;font-size:14px;padding:3px 0 3px 10px;border-left:3px solid var(--line)}.lar.k-start{border-color:var(--brand)}.lar.k-end{border-color:var(--ok)}.lar.k-pay{border-color:var(--brass)}.lar.k-ev{border-color:#D9A400}.lat{font-weight:600}.las{color:var(--muted);font-size:13px}.lar .lnkb{font-size:13px;font-weight:500;margin-left:auto}
+.row.todo .snz{display:none;gap:3px}.row.todo:hover .snz{display:inline-flex}.row.todo .snz .xbtn{font-size:11px;font-weight:600;width:auto;padding:0 6px;height:22px;border-radius:5px}
+
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%}
@@ -443,9 +455,9 @@ function save(){if(!S)return;prep();var j=JSON.stringify(S);if(j===LAST&&!OUT.le
 function poll(){var r=gs();if(!r||SAVING||!S)return;if(JSON.stringify((prep(),S))!==LAST)return;
   r.withSuccessHandler(function(res){if(res&&res.state&&res.state.v>SV&&!SAVING){S=res.state;SV=S.v;LAST=JSON.stringify(S);render();toast('Új esemény érkezett')}}).irodaBetolt(CFG.k)}
 function boot(){var r=gs();
-  if(!r){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}if(!S||!S.projects)S=seed();prep();render();return}
+  if(!r){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}if(!S||!S.projects)S=seed();prep();hashRead();render();return}
   document.getElementById('main').innerHTML='<p class="muted">Betöltés…</p>';
-  r.withSuccessHandler(function(res){if(res.state){S=res.state;SV=S.v||0;LAST=JSON.stringify(S);prep()}else{S=seed();(res.pending||[]).forEach(function(l){S.leads.unshift(l)});SV=0}render();setInterval(poll,30000)})
+  r.withSuccessHandler(function(res){if(res.state){S=res.state;SV=S.v||0;LAST=JSON.stringify(S);prep()}else{S=seed();(res.pending||[]).forEach(function(l){S.leads.unshift(l)});SV=0}hashRead();render();setInterval(poll,30000)})
    .withFailureHandler(function(err){document.getElementById('main').innerHTML='<p>Nem sikerült betölteni: '+esc(err&&err.message||err)+'</p>'}).irodaBetolt(CFG.k)}
 var view={tab:'att',pid:'p1',ph:null,ptab:'fazisok'};
 var main=document.getElementById('main');
@@ -455,7 +467,7 @@ function toast(m){var t=document.getElementById('toast');t.textContent=m;t.hidde
 function log(p,m){p.log.push([iso(new Date()),m])}
 
 var MENU=[['att','Áttekintés'],['megk','Megkeresések'],['proj','Projektek'],['ajan','Ajánlatkészítő'],['tet','Tételtár'],['nap','Naptár'],['penz','Pénzügyek'],['part','Partnerek'],['beall','Beállítások']];
-function renderMenu(){var m=document.getElementById('menu');m.innerHTML='';
+function renderMenu(){var m=document.getElementById('menu');m.innerHTML='';var qb=document.createElement('button');qb.type='button';qb.className='qsbtn';qb.innerHTML='<span>🔍 Keresés…</span><span class="kbd">⌘K</span>';qb.onclick=qsOpen;m.appendChild(qb);
   var nNew=S.leads.filter(function(l){return l.st==='uj'}).length,nWait=S.projects.filter(function(p){return p.phases.some(function(x){return x.st==='wait'})||(p.msgs||[]).some(function(m){return m.from==='u'&&!m.rd})||(p.alv||[]).some(function(a){return (a.msgs||[]).some(function(m){return m.from==='a'&&!m.rd})})||(p.req||[]).some(function(r){return r.by==='u'&&r.st==='pending'})}).length;
   MENU.forEach(function(x){var b=document.createElement('button');b.type='button';b.innerHTML='<span>'+x[1]+'</span>';
     var c=x[0]==='megk'?nNew:(x[0]==='proj'?nWait:0);if(c){var s=document.createElement('span');s.className='cnt';s.textContent=c;b.appendChild(s)}
@@ -464,7 +476,140 @@ function hasDemo(){return S.projects.some(function(x){return /\(minta\)/.test(x.
 function bar(title,sub,right){return '<div class="bar"><div><h1>'+title+'</h1>'+(sub?'<p class="muted">'+sub+'</p>':'')+'</div><div class="actions">'+(right||'')+(hasDemo()?'<span class="demo">Mintaadatokkal</span>':'<span class="demo" style="background:var(--ok-tint);color:var(--ok)">Tesztüzem</span>')+'</div></div>'}
 
 /* ÁTTEKINTÉS */
+/* ===== v27: Teendők (inbox) gyűjtő, gyorskereső, portfólió-idővonal, projekt-állapot ===== */
+/* Minden figyelmet igénylő dolog egy listában: {pr:0-3, kind, p, t, s, act:[label,data-attr,value], when} */
+function todoKey(x){return x.kind+'|'+(x.p?x.p.id:'')+'|'+String(x.t).slice(0,60)}
+function todoAll(){var L=todoAll0(),SN=S.snooze||{},ma=iso(TODAY);for(var k in SN)if(SN[k]<=ma)delete SN[k];return L.filter(function(x){return !SN[todoKey(x)]})}
+function todoAll0(){var L=[],ma=iso(TODAY);
+  S.leads.filter(function(l){return l.st==='uj'}).forEach(function(l){L.push({pr:1,kind:'lead',t:'Új megkeresés: '+(l.nev||'?'),s:(l.tipus||'')+(l.hely?' · '+l.hely:'')+(l.d?' · '+fd(pd(l.d)):''),go:'megk'})});
+  S.projects.forEach(function(p){if(p.archiv)return;var sc=sched(p);
+    /* ügyfél: üzenet, módosítási kérés, jóváhagyásra váró fázis / pótmunka */
+    var um=(p.msgs||[]).filter(function(m){return (m.from==='u')&&!m.rd}).length;if(um)L.push({pr:1,kind:'msg',p:p,t:um+' új üzenet a megrendelőtől',s:p.nev,open:p.id,anchor:'uzenetek'});
+    (p.req||[]).filter(function(r){return r.by==='u'&&r.st==='pending'}).forEach(function(r){L.push({pr:1,kind:'req',p:p,t:'Módosítási kérés: '+String(reqText(r)).replace(/<[^>]+>/g,''),s:p.nev,open:p.id,anchor:'uzenetek'})});
+    (p.extra||[]).forEach(function(e){if(e.st==='alv')L.push({pr:2,kind:'extra',p:p,t:'Alvállalkozói pótmunka-javaslat: '+e.t,s:p.nev+' · csak te látod, dönts róla',open:p.id})});
+    /* alvállalkozók: üzenet, akadály, készre jelentés */
+    (p.alv||[]).concat(p.kozvP||[]).forEach(function(a){var n=(a.msgs||[]).filter(function(m){return m.from==='a'&&!m.rd}).length;if(n)L.push({pr:1,kind:'msg',p:p,t:n+' új üzenet: '+a.nev,s:p.nev,open:p.id,anchor:'uzenetek'})});
+    nplAll(p).forEach(function(x){if(x.e.ak&&!x.e.ok)L.push({pr:0,kind:'akad',p:p,t:'Akadály: '+x.a.nev+(x.e.k&&kIdx(x.e.k)>=0?' – '+TPL[kIdx(x.e.k)].t:''),s:String(x.e.t||'').slice(0,90),open:p.id})});
+    p.phases.forEach(function(x,i){if(x.st==='wait')L.push({pr:2,kind:'wait',p:p,t:TPL[i].t+' – készre jelentve, átvételre vár',s:p.nev+' · '+(p.ugyfel||''),open:p.id,ph:i});
+      if(x.st==='active'&&sc[i]&&sc[i][1]<TODAY)L.push({pr:0,kind:'late',p:p,t:TPL[i].t+' – lejárt határidő ('+fd(sc[i][1])+')',s:p.nev+' · pontosítsd az ütemtervet vagy jelentsd készre',open:p.id,ph:i})});
+    /* szerződések */
+    var z=p.szk;if(z){if(z.st==='draft'){var nj=z.docs.filter(function(d){return !d.jov&&!d.kesobb}).length,nk=z.docs.filter(function(d){return !d.kuldve&&!d.kesobb}).length;if(nk)L.push({pr:2,kind:'szk',p:p,t:nk+' szerződéstervezet még nincs kiküldve',s:p.nev,open:p.id,anchor:'szerzodesek'});else if(nj)L.push({pr:3,kind:'szk',p:p,t:nj+' fél még nem hagyta jóvá a tervezetet',s:p.nev,open:p.id,anchor:'szerzodesek'})}
+      if(z.st==='alairas'){var K=z.docs.filter(function(d){return !d.kesobb}),na=K.filter(function(d){return !d.al});if(!na.length)L.push({pr:0,kind:'szk',p:p,t:'Mindenki aláírt – a te aláírásod következik',s:p.nev,open:p.id,anchor:'szerzodesek'});else L.push({pr:3,kind:'szk',p:p,t:na.length+' fél aláírására vár: '+na.map(function(d){return szkParty(p,d).nev}).join(', '),s:p.nev,open:p.id,anchor:'szerzodesek'})}
+      if(z.st==='aktiv')z.docs.forEach(function(d){if(d.st1==='alairas'&&d.al&&!d.gt)L.push({pr:0,kind:'szk',p:p,t:szkParty(p,d).nev+' aláírt – most te írod alá',s:p.nev,open:p.id,anchor:'szerzodesek'})})}
+    (p.kulso||[]).forEach(function(k){if(k.jovU&&k.jovA&&k.st!=='alairva')L.push({pr:3,kind:'szk',p:p,t:'Közvetlen szerződés jóváhagyva mindkét fél által: '+k.fel1,s:p.nev+' · rögzítsd, ha aláírták',open:p.id,anchor:'kozvetlen'})});
+    /* pénz */
+    p.pays.forEach(function(y){if(y.st==='due')L.push({pr:1,kind:'pay',p:p,t:'Számlázható: '+y.t,s:p.nev+' · '+ft(y.amt)+' + áfa',open:p.id,inv:p.id+'|'+p.pays.indexOf(y)});
+      if(y.st==='invoiced'&&y.invd&&iso(addD(pd(y.invd),8))<ma)L.push({pr:0,kind:'pay',p:p,t:'Lejárt fizetési határidő: '+y.t,s:p.nev+' · '+ft(y.amt)+' + áfa · díjbekérő kiküldve: '+fd(pd(y.invd))+', 8 napos határidő',open:p.id})});
+    /* holnapi kezdés */
+    var hn=iso(addD(TODAY,1));p.phases.forEach(function(x,i){if(x.st!=='skip'&&x.st!=='done'&&sc[i]&&iso(sc[i][0])===hn)L.push({pr:2,kind:'start',p:p,t:'Holnap kezdődik: '+TPL[i].t,s:p.nev+' · '+(alvOf(p,TPL[i].k).map(function(a){return a.nev}).join(', ')||'nincs kivitelező hozzárendelve'),open:p.id,ph:i})});
+  });
+  /* mai és holnapi időpontok */
+  (S.events||[]).forEach(function(e){if(e.d===ma||e.d===iso(addD(TODAY,1)))L.push({pr:e.d===ma?1:2,kind:'ev',t:(e.d===ma?'Ma ':'Holnap ')+e.t+' – '+e.c,s:e.hely||e.link||'',go:'nap'})});
+  return L.sort(function(a,b){return a.pr-b.pr})}
+var TODO_K={akad:['Akadály','p-bad'],late:['Késés','p-bad'],msg:['Üzenet','p-info'],req:['Kérés','p-info'],lead:['Megkeresés','p-brass'],wait:['Átvétel','p-warn'],extra:['Pótmunka','p-warn'],szk:['Szerződés','p-mute'],pay:['Pénz','p-ok'],start:['Kezdés','p-info'],ev:['Időpont','p-mute']};
+function todoRow(x){var k=TODO_K[x.kind]||['',''],act=x.inv?'<button class="btn sm" data-inv="'+esc(x.inv)+'">Számla</button>':(x.open?'<button class="btn sm'+(x.pr===0?'':' sec')+'" data-open="'+esc(x.open)+'"'+(x.ph!=null?' data-openph="'+x.ph+'"':'')+(x.anchor?' data-anchor="'+x.anchor+'"':'')+'>Megnyitás</button>':(x.go?'<button class="btn sm sec" data-go="'+x.go+'">Megnyitás</button>':''));
+  var sn='<span class="snz"><button class="xbtn" data-snz="'+esc(todoKey(x))+'|1" title="Elhalasztás holnapra">1n</button><button class="xbtn" data-snz="'+esc(todoKey(x))+'|3" title="Elhalasztás 3 nappal">3n</button><button class="xbtn" data-snz="'+esc(todoKey(x))+'|7" title="Elhalasztás jövő hétre">1h</button></span>';
+  return '<div class="row todo"><div><div class="t"><span class="pill '+k[1]+'">'+k[0]+'</span> '+esc(x.t)+'</div>'+(x.s?'<div class="s">'+esc(x.s)+'</div>':'')+'</div><span class="evr" style="gap:6px">'+act+sn+'</span></div>'}
+function snoozeClick(d){if(!d.snz)return false;var a=d.snz.split('|'),n=+a.pop(),k=a.join('|');S.snooze=S.snooze||{};S.snooze[k]=iso(addD(TODAY,n));toast('Elhalasztva: '+fd(addD(TODAY,n)));render();return true}
+function todoCard(L,title,empty){return '<div class="card"><h2>'+title+(L.length?' <span class="pill p-mute">'+L.length+'</span>':'')+'</h2><div class="list">'+(L.length?L.map(todoRow).join(''):'<p class="muted" style="font-size:13.5px">'+empty+'</p>')+'</div></div>'}
+
+/* projekt-állapot egy pillantásra: zöld / sárga / piros */
+function projHealth(p){var sc=sched(p),ci=curIdx(p),late=p.phases.some(function(x,i){return x.st==='active'&&sc[i]&&sc[i][1]<TODAY}),ak=nplAll(p).some(function(x){return x.e.ak&&!x.e.ok}),over=p.pays.some(function(y){return y.st==='invoiced'&&y.invd&&iso(addD(pd(y.invd),8))<iso(TODAY)});
+  if(ak||late||over)return ['bad',ak?'nyitott akadály':(late?'lejárt határidő':'lejárt számla')];
+  var wait=p.phases.some(function(x){return x.st==='wait'}),um=(p.msgs||[]).some(function(m){return m.from==='u'&&!m.rd});
+  if(wait||um)return ['warn',wait?'átvételre vár':'új üzenet'];
+  return ['ok','rendben']}
+function projProg(p){var n=0,d=0;p.phases.forEach(function(x,i){if(x.st==='skip')return;var dl=dels(p,i);n+=dl.length;d+=dl.filter(function(z){return z.on}).length});return n?Math.round(d/n*100):0}
+
+/* portfólió-idővonal: minden aktív projekt egy sorban, hetekre bontva, ma-vonallal */
+function portfolio(){var P=S.projects.filter(function(p){return !p.archiv&&!/\(minta\)/.test(p.ugyfel||'')});if(!P.length)return '';
+  var A=null,B=null,rows=P.map(function(p){var sc=sched(p),a=sc[0][0],b=sc[lastInc(p)][1];if(!A||a<A)A=a;if(!B||b>B)B=b;return {p:p,sc:sc,a:a,b:b}});
+  A=addD(A,-3);B=addD(B,7);if(A>TODAY)A=addD(TODAY,-3);if(B<TODAY)B=addD(TODAY,7);var span=(B-A)||1,x=function(d){return Math.max(0,Math.min(100,(d-A)/span*100)).toFixed(2)+'%'};
+  var h='<div class="card"><div class="head"><div><h2>Minden projekt egy idővonalon</h2><p class="muted" style="font-size:13px">A sávok a munkanemek csoportjai szerint színezettek; a függőleges vonal a mai nap. Kattints a projekt nevére a megnyitáshoz.</p></div></div><div class="gantt pf">';
+  rows.forEach(function(r){var p=r.p,hl=projHealth(p);h+='<div class="gl"><div class="lab"><span class="hdot '+hl[0]+'" title="'+esc(hl[1])+'"></span><button class="lnkb" data-open="'+esc(p.id)+'">'+esc(p.nev)+'</button><span class="dl">'+projProg(p)+'%</span></div><div class="track">';
+    TPL.forEach(function(t,i){var st=p.phases[i].st;if(st==='skip'||!r.sc[i])return;h+='<div class="seg '+st+'" style="background:'+(GCOL[t.g]||'#888')+';opacity:'+(st==='done'?'.45':(st==='todo'?'.8':'1'))+';left:'+x(r.sc[i][0])+';width:max(3px,calc('+x(r.sc[i][1])+' - '+x(r.sc[i][0])+'))" title="'+esc(t.t)+': '+fd(r.sc[i][0])+' – '+fd(r.sc[i][1])+'"></div>'});
+    h+='<div class="today" style="left:'+x(TODAY)+'"></div></div></div>'});
+  h+='<div class="gl axis"><div></div><div class="ticks">';var d=new Date(A.getFullYear(),A.getMonth(),1);if(d<A)d=new Date(A.getFullYear(),A.getMonth()+1,1);while(d<B){h+='<span style="left:'+x(d)+'">'+HU[d.getMonth()]+'</span>';d=new Date(d.getFullYear(),d.getMonth()+1,1)}
+  return h+'</div></div></div></div>'}
+
+/* gyorskereső: Ctrl/Cmd+K vagy a felső mező – projektek, ügyfelek, alvállalkozók, megkeresések, menüpontok */
+function qsIndex(){var I=[];MENU.forEach(function(m){I.push({t:m[1],s:'Menü',go:m[0]})});
+  S.projects.forEach(function(p){I.push({t:p.nev,s:'Projekt · '+(p.ugyfel||'')+(p.hely?' · '+p.hely:''),open:p.id});
+    (p.megr||[]).forEach(function(m){I.push({t:m.nev,s:'Megrendelő · '+p.nev,open:p.id,anchor:'megrendelok'})});
+    (p.alv||[]).concat(p.kozvP||[]).forEach(function(a){I.push({t:a.nev,s:(a.szakag||'Alvállalkozó')+' · '+p.nev,open:p.id,anchor:'alvallalkozok'})});
+    (p.kont||[]).forEach(function(c){I.push({t:c.nev,s:(c.szerep||'Kapcsolattartó')+' · '+p.nev,open:p.id})});
+    TPL.forEach(function(t,i){if(p.phases[i].st!=='skip')I.push({t:t.t,s:'Munkanem · '+p.nev,open:p.id,ph:i})})});
+  S.leads.forEach(function(l){I.push({t:l.nev||'?',s:'Megkeresés · '+(l.tipus||'')+(l.hely?' · '+l.hely:''),go:'megk'})});
+  return I}
+function qsNorm(s){return String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'')}
+function qsRun(q){var n=qsNorm(q).trim();if(!n)return [];var w=n.split(/\s+/);return qsIndex().filter(function(i){var h=qsNorm(i.t+' '+i.s);return w.every(function(x){return h.indexOf(x)>=0})}).slice(0,12)}
+function qsOpen(){var o=document.getElementById('qs');if(!o){o=document.createElement('div');o.id='qs';o.innerHTML='<div class="qsb"><input type="text" id="qsi" placeholder="Keresés: projekt, ügyfél, alvállalkozó, munkanem, menü… (Esc: bezár)" autocomplete="off"><div id="qsl" class="list"></div></div>';document.body.appendChild(o);
+    o.addEventListener('click',function(e){if(e.target===o)qsClose();var b=e.target.closest('[data-qsi]');if(b){qsGo(qsRun(document.getElementById('qsi').value)[+b.dataset.qsi]);}});
+    o.querySelector('#qsi').addEventListener('input',qsDraw);o.querySelector('#qsi').addEventListener('keydown',function(e){if(e.key==='Escape'){qsClose();e.preventDefault()}if(e.key==='Enter'){var r=qsRun(e.target.value);if(r.length)qsGo(r[qs.sel||0]);e.preventDefault()}if(e.key==='ArrowDown'){qs.sel=Math.min((qs.sel||0)+1,qsRun(e.target.value).length-1);qsDraw();e.preventDefault()}if(e.key==='ArrowUp'){qs.sel=Math.max((qs.sel||0)-1,0);qsDraw();e.preventDefault()}})}
+  qs.sel=0;o.hidden=false;var i=document.getElementById('qsi');i.value='';qsDraw();setTimeout(function(){i.focus()},0)}
+var qs={sel:0};
+function qsClose(){var o=document.getElementById('qs');if(o)o.hidden=true}
+function qsDraw(){var i=document.getElementById('qsi'),l=document.getElementById('qsl'),r=qsRun(i.value);if(qs.sel>=r.length)qs.sel=0;
+  l.innerHTML=i.value.trim()?(r.length?r.map(function(x,k){return '<div class="row'+(k===qs.sel?' sel':'')+'" data-qsi="'+k+'" style="cursor:pointer"><div><div class="t">'+esc(x.t)+'</div><div class="s">'+esc(x.s)+'</div></div><span class="muted" style="font-size:12px">↵</span></div>'}).join(''):'<p class="muted" style="padding:10px 0">Nincs találat.</p>'):'<p class="muted" style="padding:10px 0;font-size:13px">Írj be egy nevet, címet vagy munkanemet. Tipp: a Ctrl+K (Mac: ⌘K) bárhonnan megnyitja.</p>'}
+function qsGo(x){if(!x)return;qsClose();if(x.go){view.tab=x.go;render();return}if(x.open){view.tab='proj';view.pid=x.open;view.ph=x.ph!=null?x.ph:null;view.dl=null;render();if(x.anchor)setTimeout(function(){var e=document.getElementById(x.anchor);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
+document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();qsOpen()}});
+
+/* kéthetes előretekintés: mi kezdődik / fejeződik be, ki végzi, milyen időpont van */
+function lookahead(){var A=TODAY,B=addD(TODAY,14),D={},add=function(d,x){var k=iso(d);(D[k]=D[k]||[]).push(x)};
+  S.projects.forEach(function(p){if(p.archiv||/\(minta\)/.test(p.ugyfel||''))return;var sc=sched(p);
+    TPL.forEach(function(t,i){var x=p.phases[i];if(x.st==='skip'||x.st==='done'||!sc[i])return;var a=sc[i][0],b=sc[i][1],who=alvOf(p,t.k).concat((p.kozvP||[]).filter(function(z){return (z.phases||[]).indexOf(t.k)>=0})).map(function(z){return z.nev}).join(', ');
+      if(a>=A&&a<=B)add(a,{p:p,ph:i,t:'Kezdés: '+t.t,s:who||'nincs kivitelező hozzárendelve',k:'start'});
+      if(b>=A&&b<=B)add(b,{p:p,ph:i,t:'Befejezés: '+t.t,s:who||'',k:'end'})});
+    (p.pays||[]).forEach(function(y){var i=y.ph;if(y.st==='future'&&sc[i]&&sc[i][1]>=A&&sc[i][1]<=B)add(sc[i][1],{p:p,t:'Számlázható lesz: '+y.t,s:ft(y.amt)+' + áfa',k:'pay'})})});
+  (S.events||[]).forEach(function(e){var d=pd(e.d);if(d>=A&&d<=B)add(d,{t:e.t+' – '+e.c,s:e.hely||'',k:'ev',go:'nap'})});
+  var days=Object.keys(D).sort();if(!days.length)return '';
+  var NAP=['vasárnap','hétfő','kedd','szerda','csütörtök','péntek','szombat'];
+  var h='<div class="card"><div class="head"><div><h2>Következő két hét</h2><p class="muted" style="font-size:13px">Az ütemterv szerinti kezdések és befejezések, az esedékessé váló mérföldkövek és az időpontok, napokra bontva. A kivitelezők egy nappal a kezdésük előtt e-mailt kapnak.</p></div></div><div class="la">';
+  days.forEach(function(k){var d=pd(k),isT=k===iso(TODAY);h+='<div class="lad"><div class="lah'+(isT?' today':'')+'">'+(isT?'Ma · ':'')+fd(d)+' <span class="muted">'+NAP[d.getDay()]+'</span></div>';
+    D[k].forEach(function(x){h+='<div class="lar k-'+x.k+'"><span class="lat">'+esc(x.t)+'</span>'+(x.p?'<span class="muted"> · '+esc(x.p.nev)+'</span>':'')+(x.s?'<span class="las">'+esc(x.s)+'</span>':'')+(x.p?'<button class="lnkb" data-open="'+esc(x.p.id)+'"'+(x.ph!=null?' data-openph="'+x.ph+'"':'')+'>Megnyitás</button>':'')+'</div>'});
+    h+='</div>'});
+  return h+'</div></div>'}
+
+/* heti összefoglaló a megrendelőknek: kész / következik / döntésre vár – egy kattintással */
+function weeklyHtml(p,m){var sc=sched(p),wk0=addD(TODAY,-7),wk1=addD(TODAY,7),done=[],next=[],need=[];
+  TPL.forEach(function(t,i){var x=p.phases[i];if(x.st==='skip')return;if(x.st==='done'&&(!x.dd||pd(x.dd)>=wk0))done.push(t.t+(x.dd?' ('+fd(pd(x.dd))+')':''));
+    if((x.st==='active'||x.st==='todo')&&sc[i]&&sc[i][0]<=wk1&&sc[i][1]>=TODAY)next.push(t.t+' – '+fd(sc[i][0])+' – '+fd(sc[i][1]));
+    if(x.st==='wait')need.push('Átvétel: '+t.t+' – készre jelentettük, kérjük, vegye át a portálon')});
+  (p.extra||[]).forEach(function(e){if(e.st==='pending'&&(!m||!e.m||e.m===m.id))need.push('Pótmunka jóváhagyása: '+e.t+' ('+ft(e.amt)+' + áfa)')});
+  var z=p.szk;if(z){var d=m?z.docs.filter(function(q){return q.tip==='u'&&q.f&&q.f.mid===m.id})[0]:z.docs.filter(function(q){return q.tip==='u'})[0];if(d){if(z.st==='draft'&&d.kuldve&&!d.jov)need.push('Szerződéstervezet jóváhagyása a portálon');if(z.st==='alairas'&&!d.al&&!d.kesobb)need.push('Szerződés aláírása a portálon')}}
+  (p.pays||[]).forEach(function(y){if((y.st==='due'||y.st==='invoiced')&&(!m||!y.m||y.m===m.id))need.push('Fizetés: '+y.t+' – '+ft(y.amt)+' + áfa'+(y.st==='invoiced'?' (díjbekérő kiküldve)':''))});
+  var ak=nplAll(p).filter(function(x){return x.e.ak&&!x.e.ok}).length;
+  var li=function(L){return L.length?'<ul>'+L.map(function(x){return '<li>'+esc(x)+'</li>'}).join('')+'</ul>':'<p class="muted">–</p>'};
+  return '<p>Heti összefoglaló a(z) <b>'+esc(p.nev)+'</b> munkáiról ('+fd(wk0)+' – '+fd(TODAY)+').</p><p><b>Elkészült az elmúlt héten</b></p>'+li(done)+'<p><b>Következik a jövő héten</b></p>'+li(next)+'<p><b>Az Ön döntésére, intézkedésére vár</b></p>'+li(need.length?need:['Jelenleg nincs teendője.'])+(ak?'<p>Figyelem: '+ak+' nyitott akadályt kezelünk; ha az ütemezést érinti, külön értesítjük.</p>':'')+'<p>Várható befejezés: <b>'+fdl(sc[lastInc(p)][1])+'</b>. Az aktuális ütemtervet, fotókat és dokumentumokat az ügyfélportálon találja.</p>'}
+function weeklySend(p){var n=0,M=(p.megr||[]).length?p.megr:[{nev:p.ugyfel,email:p.email,token:p.token}];
+  M.forEach(function(m){if(!m.email)return;if(mail(m.email,'Heti összefoglaló – '+p.nev,'<p>Tisztelt '+esc(nm(m.nev))+'!</p>'+weeklyHtml(p,m.id?m:null)+btnHtml(m.token?megrUrl(p,m):portalUrl(p),'Ügyfélportál megnyitása')+sign()))n++});
+  p.heti=iso(TODAY);log(p,'Heti összefoglaló kiküldve '+n+' megrendelőnek');toast(n?'Heti összefoglaló elküldve ('+n+' címzett)':'Nincs e-mail cím');render()}
+
+/* könyvjelzőzhető cím: #tab vagy #proj/<id>/<fázis> – a böngésző vissza gombja is működik */
+function hashSet(){var h='#'+view.tab+(view.tab==='proj'&&view.pid?'/'+view.pid+(view.ph!=null?'/'+view.ph:''):'');if(location.hash!==h){hashSet.own=h;history.replaceState(null,'',h)}}
+function hashRead(){var m=String(location.hash||'').slice(1).split('/');if(!m[0]||!MENU.some(function(x){return x[0]===m[0]}))return false;view.tab=m[0];if(m[0]==='proj'&&m[1]&&S.projects.some(function(p){return p.id===m[1]})){view.pid=m[1];if(m[2]!=null&&m[2]!=='')view.ph=+m[2]}return true}
+window.addEventListener('hashchange',function(){if(location.hash===hashSet.own)return;if(S&&hashRead())render()});
+
 function vAtt(){
+  var L=todoAll(),now=L.filter(function(x){return x.pr===0}),today=L.filter(function(x){return x.pr===1}),soon=L.filter(function(x){return x.pr===2}),wait=L.filter(function(x){return x.pr===3});
+  var due=0,invd=0,paid=0,fut=0;S.projects.forEach(function(p){if(p.archiv)return;p.pays.forEach(function(y){if(y.st==='due')due+=y.amt;if(y.st==='invoiced')invd+=y.amt;if(y.st==='paid')paid+=y.amt;if(y.st==='future')fut+=y.amt})});
+  var act=S.projects.filter(function(p){return !p.archiv}),nNew=S.leads.filter(function(l){return l.st==='uj'}).length;
+  var h=bar('Jó napot, Ádám!',fdl(TODAY)+' · '+act.length+' aktív projekt · '+L.length+' teendő','<button class="btn sm ghost" data-act="qs">Keresés (⌘K)</button>');
+  h+='<div class="grid g4">'+kpi(now.length,'azonnali teendő')+kpi(today.length+soon.length,'mai és holnapi teendő')+kpi(ft(due+invd),'számlázható + kint lévő')+kpi(nNew,'új megkeresés')+'</div>';
+  h+='<div class="grid g3"><div style="display:flex;flex-direction:column;gap:20px">'+todoCard(now,'Azonnal','Nincs sürgős teendő – nincs akadály, késés vagy lejárt számla.')+todoCard(today,'Ma','Ma nincs megválaszolatlan üzenet, kérés vagy számlázható tétel.')+todoCard(soon,'Következik','Nincs holnap kezdődő munka, átvételre váró vagy döntésre váró tétel.')+todoCard(wait,'Másokra várunk','Minden kiküldött tervezet jóváhagyva, aláírva.')+'</div>';
+  var ev=S.events.slice().sort(function(a,b){return (a.d+a.t)<(b.d+b.t)?-1:1}).filter(function(e){return e.d>=iso(TODAY)}).slice(0,6);
+  h+='<div style="display:flex;flex-direction:column;gap:20px"><div class="card"><h2>Projektek állapota</h2><div class="list">';
+  act.forEach(function(p){var hl=projHealth(p),sc=sched(p),ci=curIdx(p);h+='<div class="row"><div><div class="t"><span class="hdot '+hl[0]+'"></span>'+esc(p.nev)+'</div><div class="s">'+esc(TPL[ci].t)+' · '+projProg(p)+'% · befejezés '+fd(sc[lastInc(p)][1])+' · '+esc(hl[1])+'</div></div><button class="btn sm sec" data-open="'+esc(p.id)+'">Megnyitás</button></div>'});
+  if(!act.length)h+='<p class="muted">Nincs aktív projekt.</p>';
+  h+='</div></div><div class="card"><h2>Közelgő időpontok</h2><div class="list">';
+  ev.forEach(function(e){h+='<div class="row"><div><div class="t">'+esc(e.c)+'</div><div class="s">'+fd(pd(e.d))+' '+esc(e.t)+(e.hely?' · '+esc(e.hely):'')+'</div>'+(e.link?'<a class="lnk" href="'+esc(e.link)+'" target="_blank" rel="noopener">Csatlakozás</a>':'')+'</div></div>'});
+  if(!ev.length)h+='<p class="muted" style="font-size:13.5px">Nincs közelgő időpont.</p>';
+  h+='</div><button class="btn sm ghost" data-go="nap">Naptár</button></div>';
+  h+='<div class="card kpi"><b class="num">'+ft(paid)+'</b><span>befolyt · hátra: '+ft(fut)+'</span></div></div></div>';
+  h+=lookahead()+portfolio();
+  main.innerHTML=h;
+}
+function vAtt0(){
   var due=[],wait=[],tasks=[],xw=[];
   S.projects.forEach(function(p){p.pays.forEach(function(y){if(y.st==='due')due.push([p,y])});var i=curIdx(p),ph=p.phases[i],sc=sched(p);
     if(ph.st==='wait')wait.push([p,TPL[i]]);
@@ -531,10 +676,10 @@ function vProj(){
   var sc=sched(p),ci=curIdx(p);if(view.ph==null||view.ph>=TPL.length)view.ph=ci;
   var h=bar('Projektek','');
   h+='<div class="ptabs" role="group" aria-label="Projekt kiválasztása">';
-  S.projects.forEach(function(x){h+='<button type="button" aria-pressed="'+(x.id===p.id)+'" data-pid="'+x.id+'">'+esc(x.nev)+'</button>'});
+  S.projects.forEach(function(x){var hl=projHealth(x);h+='<button type="button" aria-pressed="'+(x.id===p.id)+'" data-pid="'+x.id+'" title="'+esc(hl[1])+'"><span class="hdot '+hl[0]+'"></span>'+esc(x.nev)+'</button>'});
   h+='</div>';
   var paid=p.pays.filter(function(y){return y.st==='paid'}).reduce(function(a,y){return a+y.amt},0),tot=p.pays.reduce(function(a,y){return a+y.amt},0);
-  h+='<div class="card"><div class="head"><div><h2>'+esc(p.nev)+'</h2><div class="meta"><span>Ügyfél: <b>'+esc(p.ugyfel)+'</b></span><span>'+esc(p.hely)+'</span><span class="num"><b>'+p.m2+'</b> m²</span><span>'+esc(p.csomag)+'</span></div><div class="meta" style="margin-top:8px;align-items:center"><label style="display:flex;gap:6px;align-items:center">Ügyfél e-mail: <input type="text" data-pe="1" value="'+esc(p.email||'')+'" placeholder="értesítésekhez" style="width:220px;padding:4px 8px"></label><a class="btn sm ghost" href="'+esc(portalUrl(p))+'" target="_blank" rel="noopener">Ügyfélportál</a><button class="btn sm ghost" data-copy="'+esc(portalUrl(p))+'">Portál link másolása</button><button class="btn sm ghost" data-icscopy="'+esc(icsUrl(p))+'" title="Az ügyfél naptára: ha feliratkozik, minden ütemezés-változás magától frissül nála">Ügyfél naptár-linkje</button>'+(p.elo&&p.elo.st==='ajanlat'?'<span class="pill p-warn">Ajánlat kiküldve – megrendelésre vár</span>':'')+'</div></div>'+
+  h+='<div class="card"><div class="head"><div><h2>'+esc(p.nev)+'</h2><div class="meta"><span>Ügyfél: <b>'+esc(p.ugyfel)+'</b></span><span>'+esc(p.hely)+'</span><span class="num"><b>'+p.m2+'</b> m²</span><span>'+esc(p.csomag)+'</span></div><div class="meta" style="margin-top:8px;align-items:center"><label style="display:flex;gap:6px;align-items:center">Ügyfél e-mail: <input type="text" data-pe="1" value="'+esc(p.email||'')+'" placeholder="értesítésekhez" style="width:220px;padding:4px 8px"></label><a class="btn sm ghost" href="'+esc(portalUrl(p))+'" target="_blank" rel="noopener">Ügyfélportál</a><button class="btn sm ghost" data-copy="'+esc(portalUrl(p))+'">Portál link másolása</button><button class="btn sm ghost" data-act="heti" title="Kész / következik / döntésre vár – e-mailben minden megrendelőnek, a saját portállinkjével">Heti összefoglaló küldése'+(p.heti?' <span class="muted">(utoljára '+fd(pd(p.heti))+')</span>':'')+'</button><button class="btn sm ghost" data-icscopy="'+esc(icsUrl(p))+'" title="Az ügyfél naptára: ha feliratkozik, minden ütemezés-változás magától frissül nála">Ügyfél naptár-linkje</button>'+(p.elo&&p.elo.st==='ajanlat'?'<span class="pill p-warn">Ajánlat kiküldve – megrendelésre vár</span>':'')+'</div></div>'+
      '<div class="meta"><span>Kezdés: <b>'+fdl(pd(p.start))+'</b></span><span>Várható befejezés: <b>'+fdl(sc[lastInc(p)][1])+'</b></span><span class="num">Fizetve: <b>'+ft(paid)+'</b> / '+ft(tot)+'</span>'+(p.hist.length?'<span>Ütemezés módosítva: <b>'+p.hist.length+'×</b></span>':'')+'</div></div>';
   h+=gantt(p,sc)+gDlWrap(p,sc)+'<p class="muted" style="font-size:12.5px">Az ütemezés munkanapokkal számol (hétvége és ünnepnapok nélkül), a munkanemek a technológiai sorrend szerint, részben átfedéssel követik egymást. Ugyanezt a sávos ütemtervet látja az ügyfél is a portálon.</p></div>';
   h+=akadalyBox(p);h+=eloCard(p);h+=megrCard(p);h+=szkCard(p);h+=kulsoCard(p);h+=elozmenyCard(p);
@@ -1840,7 +1985,7 @@ function vBeall(){
    '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';h+=jelszoCard();
   main.innerHTML=h;
 }
-function render(){renderMenu();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}
+function render(){renderMenu();hashSet();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}
 
 function btnHtml(url,txt){return '<p><a href="'+esc(url)+'" style="display:inline-block;background:#0F2B36;color:#fff;padding:11px 18px;text-decoration:none;border-radius:4px">'+txt+'</a></p>'}
 function sign(){return '<p>Üdvözlettel:<br>Benkő Ádám<br>General Contractor Team Kft. · '+esc(S.settings.telefon||'')+'<br>generalteam.hu</p>'}
@@ -1877,10 +2022,13 @@ main.addEventListener('click',function(e){
     xOk(p,-1);p.extra.filter(function(e){return e.st==='ok'}).forEach(function(e){rows0.push([e.t+' (többlettartalom)',e.desc||'',+e.amt||0])});
     p.offer={d:p.start,src:'proj',sum:p.pays.reduce(function(s0,y){return s0+y.amt},0),targy:p.nev,hely:p.hely,m2:p.m2,rows:rows0,mil:p.pays.map(function(y){return [y.t,y.amt]})};log(p,'Ajánlat összesítve a projekt adataiból');toast('Ajánlat összesítve, az ügyfél is látja a portálon');render()}
   else if(d.evdel){S.events=S.events.filter(function(x){return x.id!==d.evdel});toast('Időpont törölve');render()}
-  else if(d.open){view.tab='proj';view.pid=d.open;view.ph=null;view.dl=null;render()}
+  else if(d.open){view.tab='proj';view.pid=d.open;view.ph=d.openph!=null?+d.openph:null;view.dl=null;render();if(d.anchor){var an=d.anchor;setTimeout(function(){var e=document.getElementById(an);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
+  if(d.act==='qs'){qsOpen();return}
+  if(snoozeClick(d))return;
+  if(d.act==='heti'){var hp=S.projects.filter(function(x){return x.id===view.pid})[0];if(hp)weeklySend(hp);return}
   else if(d.pid){view.pid=d.pid;view.ph=null;view.dl=null;view.mv=null;view.mtext='';view.matt=[];view.amwd=view.amamt=null;render()}
   else if(d.ph){view.ph=+d.ph;view.dl=null;view.amwd=view.amamt=null;render()}
-  else if(d.inv){var a=d.inv.split('|'),pp=S.projects.filter(function(x){return x.id===a[0]})[0];var py=pp.pays[+a[1]];py.st='invoiced';log(pp,'Díjbekérő kiküldve: '+py.t);var sent=mail(pp.email,'Díjbekérő: '+pp.nev+' – '+py.t,'<p>Tisztelt '+esc(nm(pp.ugyfel))+'!</p><p>A(z) <b>'+esc(py.t.toLowerCase())+'</b> esedékes összege: <b>'+ft(py.amt)+' + áfa</b>.</p><p>A számlát és a fizetési adatokat külön küldjük. (Tesztüzem: online fizetés még nincs bekötve.)</p>'+btnHtml(portalUrl(pp),'Projekt megnyitása')+sign());toast(sent?'Díjbekérő elküldve az ügyfélnek':'Rögzítve. Az ügyfélnek nincs e-mail címe');render()}
+  else if(d.inv){var a=d.inv.split('|'),pp=S.projects.filter(function(x){return x.id===a[0]})[0];var py=pp.pays[+a[1]];py.st='invoiced';py.invd=iso(TODAY);log(pp,'Díjbekérő kiküldve: '+py.t);var sent=mail(pp.email,'Díjbekérő: '+pp.nev+' – '+py.t,'<p>Tisztelt '+esc(nm(pp.ugyfel))+'!</p><p>A(z) <b>'+esc(py.t.toLowerCase())+'</b> esedékes összege: <b>'+ft(py.amt)+' + áfa</b>.</p><p>A számlát és a fizetési adatokat külön küldjük. (Tesztüzem: online fizetés még nincs bekötve.)</p>'+btnHtml(portalUrl(pp),'Projekt megnyitása')+sign());toast(sent?'Díjbekérő elküldve az ügyfélnek':'Rögzítve. Az ügyfélnek nincs e-mail címe');render()}
   else if(d.paid){var a2=d.paid.split('|'),p2_=S.projects.filter(function(x){return x.id===a2[0]})[0];p2_.pays[+a2[1]].st='paid';log(p2_,'Befizetve: '+p2_.pays[+a2[1]].t);toast('Befizetés rögzítve');render()}
   else if(d.lead){var a3=d.lead.split('|'),l=S.leads.filter(function(x){return x.id===a3[0]})[0];
     if(a3[1]==='felm'){var kd=gv('lk_'+l.id)||'felm',dv=gv('ld_'+l.id)||iso(addWork(TODAY,3)),tv=gv('lt_'+l.id)||'10:00',dd=pd(dv),on=kd==='konz';

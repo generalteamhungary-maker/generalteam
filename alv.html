@@ -196,7 +196,7 @@ function render(){var h='';
     h+='<div class="card'+(m.st==='active'?' hl':'')+'"><div style="display:flex;justify-content:space-between;gap:10px;align-items:flex-start;flex-wrap:wrap"><h2>'+esc(m.t)+'</h2><span class="pill '+s[1]+'">'+s[0]+'</span></div>';
     h+='<div class="when"><div><span class="muted">Kezdés</span><br><b>'+fdn(m.kezd)+'</b></div><div><span class="muted">Befejezés</span><br><b>'+fdn(m.vege)+'</b></div><div><span class="muted">Kész</span><br><b>'+done+'/'+m.del.length+'</b></div></div>';
     if((m.elozo||[]).length||(m.kov||[]).length)h+='<div class="ctx">'+(m.elozo||[]).map(function(e){return '<span>Előtte: <b>'+esc(e.t)+'</b> – '+(e.kesz?'kész':'várhatóan kész: '+fd(e.vege))+'</span>'}).join('')+(m.kov||[]).map(function(e){return '<span>Utána: <b>'+esc(e.t)+'</b> – kezdés: '+fd(e.kezd)+'</span>'}).join('')+'</div>';
-    h+='<div>'+m.del.map(function(x,j){return '<label class="chk'+(x.on?' on':'')+'"><input type="checkbox" data-chk="'+esc(m.k)+'|'+j+'"'+(x.on?' checked':'')+(lezart||PRE?' disabled':'')+'><span>'+esc(x.t)+'</span></label>'}).join('')+'</div>';
+    h+='<div>'+m.del.map(function(x,j){return '<label class="chk'+(x.on?' on':'')+'"><input type="checkbox" data-chk="'+esc(m.k)+'|'+(x.x?'x:'+x.x:j)+'"'+(x.on?' checked':'')+(lezart||PRE?' disabled':'')+'><span>'+esc(x.t)+'</span></label>'}).join('')+'</div>';
     if((m.docs||[]).length)h+='<div class="docs">'+m.docs.map(doc).join('')+'</div>';
     if(PRE)h+='<p class="note">A munkarészek a szerződések aláírása után jelölhetők készre.</p>';else if(m.kesz)h+='<p class="note">Készre jelentetted: '+esc(m.kesz)+'. Ellenőrzés után átvesszük.</p>';
     else if(!lezart)h+=(UI.open[m.k]?'<textarea id="kj_'+esc(m.k)+'" placeholder="Megjegyzés (nem kötelező), pl. a lábazat holnap délelőtt szárad ki"></textarea><div class="actions"><button class="btn" data-jel="'+esc(m.k)+'">Készre jelentés elküldése</button><button class="btn sec" data-nyit="'+esc(m.k)+'">Mégse</button></div>':'<div class="actions"><button class="btn sec" data-nyit="'+esc(m.k)+'">Készre jelentem</button></div>');
@@ -254,7 +254,7 @@ function sigPad(cv){var md='',ctx=cv.getContext('2d'),dr=false,has=false,last=nu
 function fail(e){flash='';app.insertAdjacentHTML('afterbegin','<div class="err" role="alert">'+esc(e&&e.message||e)+'</div>');[].forEach.call(app.querySelectorAll('button'),function(b){b.disabled=false});window.scrollTo(0,0)}
 function ok(r,m){D=r;flash=m||'';render();if(m)window.scrollTo(0,0)}
 app.addEventListener('change',function(e){var t=e.target;
-  if(t.dataset.chk){var q=t.dataset.chk.split('|'),lab=t.closest('.chk');if(lab)lab.classList.toggle('on',t.checked);QQ=QQ.filter(function(x){return !(x[0]===q[0]&&x[1]===+q[1])});QQ.push([q[0],+q[1],t.checked]);clearTimeout(QT);QT=setTimeout(flushQ,900);return}
+  if(t.dataset.chk){var q=t.dataset.chk.split('|'),lab=t.closest('.chk');if(lab)lab.classList.toggle('on',t.checked);var jj=/^x:/.test(q[1])?q[1]:+q[1];QQ=QQ.filter(function(x){return !(x[0]===q[0]&&x[1]===jj)});QQ.push([q[0],jj,t.checked]);clearTimeout(QT);QT=setTimeout(flushQ,900);return}
   if(t.id==='nl_f'){UI.nlt=(document.getElementById('nl_t')||{}).value||'';UI.nls=(document.getElementById('nl_ls')||{}).value||'';UI.nak=!!(document.getElementById('nl_ak')||{}).checked;UI.nlk=(document.getElementById('nl_k')||{}).value||'';UI.nf=(UI.nf||[]).concat([].slice.call(t.files||[])).slice(0,8);render();return}
   if(t.id==='mf'){UI.files=UI.files.concat([].slice.call(t.files||[]));UI.mt=(document.getElementById('mt')||{}).value||'';render()}});
 

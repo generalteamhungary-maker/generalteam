@@ -165,6 +165,12 @@ window.SZM={reg:function(id,cfg){REG[id]=cfg;return '<div data-szm="'+E(id)+'"><
 var st=document.createElement('style');st.textContent=window.SZM.css;(document.head||document.documentElement).appendChild(st);
 })();
 
+
+function alvHib(){var H=D.hib||[];if(!H.length)return '';var ST={ny:['Javítandó','p-warn'],kesz:['Késznek jelölve – ellenőrzésre vár','p-info'],ell:['Ellenőrizve','p-ok']};
+  var h='<div class="card"><h2>Hibalista – rád bízott javítások</h2><p class="muted" style="font-size:14px">Ha kijavítottad, jelöld késznek (fotóval), a GeneralTeam ellenőrzi.</p><div class="list">';
+  H.forEach(function(x){var s=ST[x.st]||ST.ny;h+='<div class="row" style="align-items:start"><div><div class="t">'+esc(x.t)+' <span class="pill '+s[1]+'">'+s[0]+'</span></div><div class="s">'+(x.hat?'határidő: '+fd(x.hat):'')+(x.desc?' · '+esc(x.desc):'')+'</div>'+((x.files||[]).length?'<div>'+x.files.map(function(f){return '<a href="'+esc(f[2])+'" target="_blank" rel="noopener">'+esc(f[0])+'</a> '}).join('')+'</div>':'')+'</div>'+(x.st==='ny'?'<span class="evr"><input type="text" id="hk_'+esc(x.id)+'" placeholder="Megjegyzés (nem kötelező)" style="max-width:200px"><button class="btn sm" data-hkesz="'+esc(x.id)+'">Kész</button></span>':'')+'</div>'});
+  return h+'</div></div>'}
+
 function alvKulso(){var K=D.kulso||[];if(!K.length)return '';var h='';
   K.forEach(function(k){var op=UI.kv===k.id;h+='<div class="card"><span class="tag">Szerződéstervezet – közvetlenül a megrendelővel</span><h2>'+(k.tip==='megb'?'Megbízási':'Vállalkozási')+' szerződés</h2><p class="muted" style="font-size:14px">'+esc(k.targy)+' · <b>'+ft(k.dij)+'</b> · '+esc(k.afa)+' · '+esc(k.fiz)+'</p>'+(k.jovA?'<p><b>Jóváhagytad: '+esc(k.jovA)+'.</b></p>':'')+
     '<div class="actions"><button class="btn sec" data-kv="'+esc(k.id)+'">'+(op?'Szöveg bezárása':'Szöveg megnyitása, megjegyzések')+((k.megj||[]).length?' ('+k.megj.filter(function(m){return !m.re}).length+')':'')+'</button>'+(k.jovA||k.st==='alairva'?'':'<button class="btn" data-kjov="'+esc(k.id)+'">Jóváhagyom a tervezetet</button>')+'</div>'+
@@ -203,7 +209,7 @@ function render(){var h='';
   else if(D.munkak.length)h+='<div class="actions"><button class="btn sec" data-nlx="1">Új naplóbejegyzés</button><button class="btn sec" data-nlx="ak">Akadály jelzése</button></div>';
   if(NL.length)h+='<div class="thread">'+NL.slice(0,20).map(function(e){var m=D.munkak.filter(function(x){return x.k===e.k})[0];return '<div class="bub" style="'+(e.ak?'border-left:4px solid '+(e.ok?'#1F7A4D':'#B3261E'):'')+'"><span class="mh">'+esc(e.d)+(m?' · '+esc(m.t):'')+(e.ls?' · '+e.ls+' fő':'')+(e.ak?' · <b style="color:'+(e.ok?'#1F7A4D':'#B3261E')+'">'+(e.ok?'Akadály megoldva':'Akadály – jelezve')+'</b>':'')+'</span>'+(e.t?'<span style="white-space:pre-line">'+esc(e.t)+'</span>':'')+((e.files||[]).length?'<div class="docs">'+e.files.map(doc).join('')+'</div>':'')+'</div>'}).join('')+'</div>';
   h+='</div>';
-  h+=alvKulso();
+  h+=alvKulso()+alvHib();
   /* pótmunka */
   var PM=D.potmunka||[],PMS={alv:['Benkő Ádám jóváhagyására vár',''],pending:['Továbbítva a megrendelőnek','active'],ok:['Jóváhagyva – elvégezhető','done'],no:['A megrendelő nem kérte',''],elvetve:['Nem fogadtuk el','']};
   h+='<div class="card"><h2>Pótmunka</h2><p class="muted" style="font-size:14px">Ha a munka közben többletmunka kell, itt jelezd. Először Benkő Ádám látja, ő egyeztet a megrendelővel. Csak jóváhagyás után kezdd el.</p>';
@@ -261,6 +267,7 @@ app.addEventListener('click',function(e){
     sb.disabled=true;sb.textContent='Aláírás…';var png=sg.png(),sent=false,go=function(ip){if(sent)return;sent=true;call('szkAlair',[Q.pid,'',Q.t,{nev:nv,sig:png,ip:ip||'',geo:(window.__sm||{}).geo||'',meta:Object.assign({},window.__sm||{},{mod:window.__sig&&window.__sig.mode?window.__sig.mode():''}),ua:navigator.userAgent,hash:D.szk.hash,elfogad:1}]).then(function(r){ok(r,'Köszönjük, aláírtad. Ha minden fél aláírt, e-mailben megkapod a hatályos szerződést.')},fail)};
     setTimeout(function(){go('')},3500);try{fetch('https://api.ipify.org?format=json').then(function(r){return r.json()}).then(function(j){go(j&&j.ip)}).catch(function(){go('')})}catch(_){go('')}return}
   if(e.target.closest('[data-szmv]')){UI.szv=!UI.szv;render();return}
+  var hkb=e.target.closest('[data-hkesz]');if(hkb){hkb.disabled=true;var hm=(document.getElementById('hk_'+hkb.dataset.hkesz)||{}).value||'';call('alvHiba',[Q.pid,Q.t,hkb.dataset.hkesz,hm]).then(function(r){ok(r,'Köszönjük, késznek jelölted – a GeneralTeam ellenőrzi.')},fail);return}
   var kvb=e.target.closest('[data-kv]');if(kvb){UI.kv=UI.kv===kvb.dataset.kv?null:kvb.dataset.kv;render();return}
   var kjb=e.target.closest('[data-kjov]');if(kjb){kjb.disabled=true;call('kulsoJov',[Q.pid,'',Q.t,kjb.dataset.kjov]).then(function(r){ok(r,'Köszönjük, jóváhagytad a tervezetet.')},fail);return}
   if(e.target.closest('[data-pmx]')){UI.pm=!UI.pm;render();return}

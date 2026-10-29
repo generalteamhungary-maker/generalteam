@@ -23,6 +23,16 @@ window.google={script:{}};Object.defineProperty(window.google.script,'run',{get:
   --display:'Archivo',system-ui,sans-serif; --body:'Archivo',system-ui,-apple-system,'Segoe UI',sans-serif; --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
 }
 html,:root[data-theme]{color-scheme:light}
+#mob{display:none}
+@media (max-width:860px){
+  #mob{display:grid;grid-template-columns:repeat(5,1fr);position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:60;padding:4px 2px calc(4px + env(safe-area-inset-bottom,0px))}
+  #mob button{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:1px;font-size:10.5px;color:var(--muted);padding:4px 0;position:relative}#mob button .ic{font-size:18px;line-height:1.2}#mob button[aria-current]{color:var(--brand);font-weight:700}
+  #mob .cnt{position:absolute;top:0;right:16%;background:var(--brass);color:#2B1B00;border-radius:99px;font-size:10px;font-weight:700;padding:0 5px}
+  .side{display:none}.main{padding:12px 12px 90px}.bar h1{font-size:21px}.gantt.pf .lab{grid-template-columns:auto minmax(0,1fr)}.gantt.pf .lab .dl{display:none}
+  .card{padding:12px;border-radius:8px}.mini.c2{grid-template-columns:minmax(0,1fr)}.btn{padding:9px 12px}.row{grid-template-columns:minmax(0,1fr)}.row .evr{justify-content:flex-start}
+  .ptabs{overflow-x:auto;flex-wrap:nowrap}.ptabs button{white-space:nowrap}
+}
+
 .hdot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:7px;vertical-align:-1px;background:var(--muted)}.hdot.ok{background:var(--ok)}.hdot.warn{background:#D9A400}.hdot.bad{background:var(--bad)}
 .p-brass{background:var(--brass-tint);color:#7A5A2A}
 .qsbtn{display:flex;justify-content:space-between;align-items:center;background:var(--soft)!important;border:1px solid var(--line)!important;color:var(--muted)!important;margin-bottom:8px;font-weight:500!important}.qsbtn .kbd{font-family:var(--mono);font-size:11px;background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:0 5px}
@@ -503,6 +513,10 @@ function todoAll0(){var L=[],ma=iso(TODAY);
     /* holnapi kezdés */
     var hn=iso(addD(TODAY,1));p.phases.forEach(function(x,i){if(x.st!=='skip'&&x.st!=='done'&&sc[i]&&iso(sc[i][0])===hn)L.push({pr:2,kind:'start',p:p,t:'Holnap kezdődik: '+TPL[i].t,s:p.nev+' · '+(alvOf(p,TPL[i].k).map(function(a){return a.nev}).join(', ')||'nincs kivitelező hozzárendelve'),open:p.id,ph:i})});
   });
+  leadTodo(L);
+  S.projects.forEach(function(p){if(p.archiv)return;(p.hib||[]).forEach(function(x){if(x.st==='kesz')L.push({pr:2,kind:'hib',p:p,t:'Hibalista: késznek jelölve, ellenőrizd – '+x.t,s:p.nev,open:p.id,anchor:'hibalista'});if(x.st==='ny'&&x.hat&&x.hat<ma)L.push({pr:0,kind:'hib',p:p,t:'Hibalista: lejárt határidő – '+x.t,s:p.nev,open:p.id,anchor:'hibalista'})});
+    (p.naplo||[]).forEach(function(n){if(n.ak&&!n.ok)L.push({pr:0,kind:'akad',p:p,t:'Akadály / esemény a naplóban: '+String(n.t).slice(0,70),s:p.nev+' · '+fd(pd(n.d)),open:p.id,anchor:'naplo'})});
+    var g=p.gar;if(g){g.bej.forEach(function(b){if(b.st==='uj')L.push({pr:1,kind:'gar',p:p,t:'Garanciális bejelentés: '+b.t,s:p.nev,open:p.id,anchor:'garancia'})});var m1=iso(addD(pd(g.atad),30)),m2=iso(addD(pd(g.veg),-30));if(!g.kerd&&m1<=ma)L.push({pr:2,kind:'gar',p:p,t:'Egy hónapja átadva – elégedettség-kérdés küldése',s:p.nev,open:p.id,anchor:'garancia'});if(!g.bej2&&m2<=ma&&g.veg>=ma)L.push({pr:2,kind:'gar',p:p,t:'Garancia lejár '+fd(pd(g.veg))+' – garanciális bejárás egyeztetése',s:p.nev,open:p.id,anchor:'garancia'})}});
   /* mai és holnapi időpontok */
   (S.events||[]).forEach(function(e){if(e.d===ma||e.d===iso(addD(TODAY,1)))L.push({pr:e.d===ma?1:2,kind:'ev',t:(e.d===ma?'Ma ':'Holnap ')+e.t+' – '+e.c,s:e.hely||e.link||'',go:'nap'})});
   return L.sort(function(a,b){return a.pr-b.pr})}
@@ -551,7 +565,7 @@ var qs={sel:0};
 function qsClose(){var o=document.getElementById('qs');if(o)o.hidden=true}
 function qsDraw(){var i=document.getElementById('qsi'),l=document.getElementById('qsl'),r=qsRun(i.value);if(qs.sel>=r.length)qs.sel=0;
   l.innerHTML=i.value.trim()?(r.length?r.map(function(x,k){return '<div class="row'+(k===qs.sel?' sel':'')+'" data-qsi="'+k+'" style="cursor:pointer"><div><div class="t">'+esc(x.t)+'</div><div class="s">'+esc(x.s)+'</div></div><span class="muted" style="font-size:12px">↵</span></div>'}).join(''):'<p class="muted" style="padding:10px 0">Nincs találat.</p>'):'<p class="muted" style="padding:10px 0;font-size:13px">Írj be egy nevet, címet vagy munkanemet. Tipp: a Ctrl+K (Mac: ⌘K) bárhonnan megnyitja.</p>'}
-function qsGo(x){if(!x)return;qsClose();if(x.go){view.tab=x.go;render();return}if(x.open){view.tab='proj';view.pid=x.open;view.ph=x.ph!=null?x.ph:null;view.dl=null;render();if(x.anchor)setTimeout(function(){var e=document.getElementById(x.anchor);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
+function qsGo(x){if(!x)return;qsClose();if(x.go){view.tab=x.go;render();return}if(x.open){view.tab='proj';view.pid=x.open;view.ph=x.ph!=null?x.ph:null;view.dl=null;render();if(x.anchor)setTimeout(function(){var e=pOpen(x.anchor)||document.getElementById(x.anchor);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
 document.addEventListener('keydown',function(e){if((e.ctrlKey||e.metaKey)&&(e.key==='k'||e.key==='K')){e.preventDefault();qsOpen()}});
 
 /* kéthetes előretekintés: mi kezdődik / fejeződik be, ki végzi, milyen időpont van */
@@ -651,7 +665,7 @@ function vMegk(){
     items.forEach(function(l){var fl=l.files||[];
       h+='<div class="lead"><b>'+esc(l.nev)+(l.web?' <span class="pill p-info">weboldal</span>':'')+'</b>'+(l.email||l.tel?'<span class="muted" style="overflow-wrap:anywhere">'+esc([l.email,l.tel].filter(Boolean).join(' · '))+'</span>':'')+'<span>'+esc(l.tipus)+' · '+esc(l.ingatlan)+'</span><span class="muted num">'+(l.m2||'?')+' m² · '+esc(l.hely)+'</span><span class="muted">'+esc(l.note)+'</span>';
       if(fl.length)h+='<div>'+fl.map(fileRow).join('')+'</div>';
-      h+='<details data-lopen="'+l.id+'"'+(view.lopen===l.id?' open':'')+'><summary>Jegyzet, fotók'+(l.memo?' ✓':'')+(fl.length?' · '+fl.length+' fájl':'')+'</summary><div class="mini" style="margin-top:6px"><textarea data-lmemo="'+l.id+'" placeholder="Saját jegyzet: felmérés tapasztalatai, méretek, kérések…">'+esc(l.memo||'')+'</textarea><label class="btn sm ghost" style="cursor:pointer;justify-self:start">Fotó / fájl csatolása<input type="file" data-lupl="'+l.id+'" multiple hidden accept="image/*,.pdf,.dwg,.doc,.docx,.xls,.xlsx"></label></div></details><div class="actions">';
+      h+='<details data-lopen="'+l.id+'"'+(view.lopen===l.id?' open':'')+'><summary>Jegyzet, fotók'+(l.memo?' ✓':'')+(fl.length?' · '+fl.length+' fájl':'')+'</summary><div class="mini" style="margin-top:6px"><textarea data-lmemo="'+l.id+'" placeholder="Saját jegyzet: felmérés tapasztalatai, méretek, kérések…">'+esc(l.memo||'')+'</textarea>'+leadKov(l)+'<label class="btn sm ghost" style="cursor:pointer;justify-self:start">Fotó / fájl csatolása<input type="file" data-lupl="'+l.id+'" multiple hidden accept="image/*,.pdf,.dwg,.doc,.docx,.xls,.xlsx"></label></div></details><div class="actions">';
       if(c[0]==='uj'){var ut=UTN[l.ut]?l.ut:'felmeres';h+='<div style="width:100%"><span class="pill '+UTN[ut][1]+'">'+UTN[ut][0]+(l.fee?' · '+ft(l.fee):'')+'</span></div>';if(ut==='visszahivas')h+='<button class="btn sm" data-gcb="'+l.id+'">Visszahívtam</button>';if(ut==='becsles')h+='<button class="btn sm" data-offer="'+l.id+'">Költségbecslés készítése</button>';h+='<details style="width:100%"'+(ut==='felmeres'?' open':'')+'><summary class="muted" style="cursor:pointer;font-size:13px">Helyszíni felmérés időpontja</summary><div class="mini" style="gap:6px;margin-top:6px"><div class="mini c2" style="gap:6px"><input type="date" id="ld_'+l.id+'" value="'+iso(addWork(TODAY,3))+'" aria-label="Dátum"><select id="lt_'+l.id+'" aria-label="Időpont"><option>8:00</option><option>9:00</option><option selected>10:00</option><option>11:00</option><option>13:00</option><option>14:00</option><option>15:00</option></select></div><label class="fld">Felmérési díj (Ft, 0 = díjmentes)<input type="number" step="5000" min="0" id="lf_'+l.id+'" value="'+(l.fee!=null?l.fee:30000)+'"></label><button class="btn sm" data-gfelm="'+l.id+'" style="justify-self:start">Felmérés visszaigazolása</button></div></details>'}
       if(c[0]==='felm'){var le=S.events.filter(function(e){return e.lid===l.id}).slice(-1)[0];if(le)h+='<div style="width:100%">'+evLinks(le)+'</div>';if(l.fee)h+=(l.feePaid>1?'<span class="pill p-ok">Felmérési díj kifizetve</span>':'<button class="btn sm ghost" data-feepaid="'+l.id+'">'+(l.feePaid?'Felmérési díj hátraléka befizetve':'Felmérési előleg befizetve')+'</button>');h+='<button class="btn sm" data-offer="'+l.id+'">Ajánlatot készítek</button>'}
       if(c[0]==='ajanlat')h+='<button class="btn sm" data-lead="'+l.id+'|szerz">Megrendelte</button>';
@@ -711,7 +725,7 @@ var lastG='',nn=0;TPL.forEach(function(x,i){var st=p.phases[i].st;if(st==='skip'
     h+='</div>';
   }
   h+='</div></div>';
-  h+=naploCard(p);h+=alvCard(p);
+  h+=naploCard(p);h+=hibCard(p);h+=alvCard(p);h+=koltCard(p);h+=garCard(p);
   h+=uzenetCard(p);
   h+=projCards(p);
   main.innerHTML=h;projEnh(p);var sgc=document.getElementById('sigc');window.__sig=sgc?sigPad(sgc):null;var pl=main.querySelector('.plist'),pb=pl&&pl.querySelector('[aria-pressed="true"]');if(pb)pl.scrollTop=Math.max(0,pb.offsetTop-80);
@@ -904,10 +918,113 @@ function szerzCard(p){var z=p.szerz,h='<div class="card"><div class="head"><div>
 /* építési napló, fotók */
 function driveId(u){var m=String(u||'').match(/\/d\/([\w-]{20,})/)||String(u||'').match(/[?&]id=([\w-]{20,})/);return m?m[1]:''}
 function thumb(f){var id=driveId(f[2]);return '<a href="'+esc(f[2]||'#')+'" target="_blank" rel="noopener" class="nth">'+(id?'<img src="https://drive.google.com/thumbnail?id='+id+'&sz=w320" alt="'+esc(f[0])+'" loading="lazy">':'<span>'+esc(f[0])+'</span>')+'</a>'}
-function naploCard(p){p.naplo=p.naplo||[];var h='<div class="card"><h3>Építési napló, fotók</h3><p class="muted" style="font-size:13px">Rövid beszámoló a haladásról, fotókkal. Az „ügyfél látja” jelölésű bejegyzések a portálon is megjelennek. (A hivatalos e-építési naplót ez nem helyettesíti.)</p>';
+function naploCard0(p){p.naplo=p.naplo||[];var h='<div class="card"><h3>Építési napló, fotók</h3><p class="muted" style="font-size:13px">Rövid beszámoló a haladásról, fotókkal. Az „ügyfél látja” jelölésű bejegyzések a portálon is megjelennek. (A hivatalos e-építési naplót ez nem helyettesíti.)</p>';
   h+='<div class="box"><textarea id="nlg_t" placeholder="pl. Ma befejeztük a fürdőszoba vízszigetelését, holnap indul a burkolás.">'+esc(view.ntext||'')+'</textarea>'+((view.natt||[]).length?'<div class="nthumbs">'+view.natt.map(thumb).join('')+'</div>':'')+'<span class="evr"><label class="btn sm ghost" style="cursor:pointer">Fotók hozzáadása<input type="file" id="nlupl" multiple accept="image/*" hidden></label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="nlg_v" checked> ügyfél látja</label><button class="btn sm" data-act="nladd">Bejegyzés mentése</button></span></div>';
   p.naplo.slice().reverse().slice(0,15).forEach(function(n){h+='<div class="row" style="grid-template-columns:80px minmax(0,1fr) auto;align-items:start"><span class="muted num">'+fd(pd(n.d))+'</span><div><div style="white-space:pre-line;font-size:14px">'+esc(n.t)+'</div>'+((n.files||[]).length?'<div class="nthumbs">'+n.files.map(thumb).join('')+'</div>':'')+'</div><button class="btn sm ghost" data-nvis="'+n.id+'">'+(n.vis?'Ügyfél látja':'Csak nekem')+'</button></div>'});
   return h+'</div>'}
+/* ===== v28: hibalista, fotónapló+, költség vs. tény, utókövetés (garancia), sablonok, CRM-követés, mobil sáv ===== */
+
+/* ---- hibalista / átadási hiánylista ---- */
+var HST={ny:['Nyitott','p-warn'],kesz:['Kész – ellenőrzésre vár','p-info'],ell:['Ellenőrizve','p-ok']};
+function hibCard(p){p.hib=p.hib||[];var A=(p.alv||[]).concat(p.kozvP||[]);var open=view.hibo!==false;
+  var L=p.hib.slice().sort(function(a,b){return (a.st==='ell')-(b.st==='ell')||String(a.hat||'9')<String(b.hat||'9')?-1:1});
+  var h='<div class="card" id="hibalista"><div class="head"><div><h3>Hibalista, átadási hiánylista'+(p.hib.length?' <span class="pill p-mute">'+p.hib.filter(function(x){return x.st!=='ell'}).length+' nyitott</span>':'')+'</h3><p class="muted" style="font-size:13px">Egy-egy javítandó tétel: fotó, felelős kivitelező, határidő. A kivitelező a saját felületén jelöli késznek, te ellenőrzöd. Az ügyfél az átadás-átvételnél a portálon vehet fel tételeket, és látja az állásukat.</p></div></div>';
+  if(L.length){h+='<div class="list">';L.forEach(function(x){var st=HST[x.st]||HST.ny,a=A.filter(function(z){return z.id===x.aid})[0],i=x.k?kIdx(x.k):-1;
+    h+='<div class="row" style="align-items:start"><div><div class="t">'+esc(x.t)+' <span class="pill '+st[1]+'">'+st[0]+'</span>'+(x.ki==='u'?' <span class="pill p-brass">ügyfél jelezte</span>':'')+'</div><div class="s">'+[a?a.nev:'nincs felelős',i>=0?TPL[i].t:'',x.hat?'határidő '+fd(pd(x.hat)):'',x.kd?'kész: '+esc(x.kd):''].filter(Boolean).join(' · ')+(x.desc?'<br>'+esc(x.desc):'')+(x.megj?'<br><i>'+esc(x.megj)+'</i>':'')+'</div>'+((x.files||[]).length?'<div class="nthumbs">'+x.files.map(thumb).join('')+'</div>':'')+'</div><span class="evr">'+(x.st==='kesz'?'<button class="btn sm" data-hibell="'+esc(x.id)+'">Ellenőrizve</button>':'')+(x.st==='ny'?'<button class="btn sm ghost" data-hibkesz="'+esc(x.id)+'">Kész</button>':'')+(x.st==='ell'?'<button class="btn sm ghost" data-hibny="'+esc(x.id)+'">Újranyit</button>':'')+'<button class="xbtn" data-hibdel="'+esc(x.id)+'" title="Törlés">×</button></span></div>'});h+='</div>'}
+  var opts=A.map(function(a){return '<option value="'+esc(a.id)+'">'+esc(a.nev)+'</option>'}).join(''),phs=TPL.map(function(t,i){return p.phases[i].st==='skip'?'':'<option value="'+t.k+'"'+(i===curIdx(p)?' selected':'')+'>'+esc(t.t)+'</option>'}).join('');
+  h+='<div class="box"><b>Új tétel</b><div class="mini c2"><input type="text" id="hb_t" placeholder="pl. Fugázás hiányos a fürdő sarkában"><select id="hb_a"><option value="">Felelős kivitelező…</option>'+opts+'</select><select id="hb_k">'+phs+'</select><input type="date" id="hb_h" value="'+iso(addD(TODAY,7))+'"></div>'+((view.hatt||[]).length?'<div class="nthumbs">'+view.hatt.map(thumb).join('')+'</div>':'')+'<span class="evr"><label class="btn sm ghost" style="cursor:pointer">Fotó<input type="file" id="hbupl" multiple accept="image/*" hidden></label><button class="btn sm" data-act="hibadd">Felvétel</button></span></div>';
+  return h+'</div>'}
+function hibClick(d,p){if(!p)return false;p.hib=p.hib||[];var f=function(id){return p.hib.filter(function(x){return x.id===id})[0]};
+  if(d.act==='hibadd'){var t=gv('hb_t').trim();if(!t){toast('Add meg a hiba leírását');return true}var x={id:'h'+Date.now(),t:t,aid:gv('hb_a'),k:gv('hb_k'),hat:gv('hb_h'),st:'ny',d:iso(TODAY),files:(view.hatt||[]).slice(),ki:'z'};p.hib.push(x);view.hatt=[];
+    var a=(p.alv||[]).concat(p.kozvP||[]).filter(function(z){return z.id===x.aid})[0];if(a&&a.email)alvMail(p,a,'Javítandó tétel: '+t+' – '+p.nev,'<p>Új javítandó tételt vettünk fel a hibalistára:</p><p><b>'+esc(t)+'</b>'+(x.hat?' – határidő: '+esc(fd(pd(x.hat))):'')+'</p><p>Ha elkészült, a felületeden jelöld késznek, fotóval.</p>');
+    log(p,'Hibalista: '+t+(a?' → '+a.nev:''));toast('Felvéve');render();return true}
+  if(d.hibkesz){var x1=f(d.hibkesz);if(x1){x1.st='kesz';x1.kd=iso(TODAY)}render();return true}
+  if(d.hibell){var x2=f(d.hibell);if(x2){x2.st='ell';x2.ed=iso(TODAY);log(p,'Hibalista ellenőrizve: '+x2.t)}render();return true}
+  if(d.hibny){var x3=f(d.hibny);if(x3){x3.st='ny';delete x3.kd;delete x3.ed}render();return true}
+  if(d.hibdel){p.hib=p.hib.filter(function(x){return x.id!==d.hibdel});render();return true}
+  return false}
+
+/* ---- fotónapló: időjárás, létszám, akadály; e-napló export ---- */
+var IDO=['napos','felhős','borult','esős','havas','szeles','viharos'];
+function naploCard(p){p.naplo=p.naplo||[];var h='<div class="card" id="naplo"><div class="head"><div><h3>Építési napló, fotók</h3><p class="muted" style="font-size:13px">Napi bejegyzés 1 perc alatt, telefonról is: időjárás, létszám, mi készült, fotók. Az „ügyfél látja” bejegyzések a portálon is megjelennek, az akadályok a teendőid közé kerülnek. A hivatalos e-építési naplóba az „e-napló nézet” gombbal másolható át.</p></div><span class="evr"><button class="btn sm ghost" data-act="enaplo">e-napló nézet</button></span></div>';
+  h+='<div class="box"><div class="mini c2"><select id="nlg_i"><option value="">Időjárás…</option>'+IDO.map(function(x){return '<option>'+x+'</option>'}).join('')+'</select><input type="text" id="nlg_h" placeholder="Hőmérséklet, pl. 12 °C" inputmode="numeric"><input type="text" id="nlg_l" placeholder="Létszám a helyszínen, pl. 3 fő" inputmode="numeric"><input type="date" id="nlg_d" value="'+iso(TODAY)+'"></div><textarea id="nlg_t" placeholder="Mi készült ma? pl. Ma befejeztük a fürdőszoba vízszigetelését, holnap indul a burkolás.">'+esc(view.ntext||'')+'</textarea>'+((view.natt||[]).length?'<div class="nthumbs">'+view.natt.map(thumb).join('')+'</div>':'')+'<span class="evr"><label class="btn sm ghost" style="cursor:pointer">📷 Fotók<input type="file" id="nlupl" multiple accept="image/*" capture="environment" hidden></label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="nlg_v" checked> ügyfél látja</label><label style="display:flex;gap:6px;align-items:center;font-size:13px"><input type="checkbox" id="nlg_a"> akadály / esemény</label><button class="btn sm" data-act="nladd">Bejegyzés mentése</button></span></div>';
+  p.naplo.slice().reverse().slice(0,20).forEach(function(n){h+='<div class="row" style="grid-template-columns:80px minmax(0,1fr) auto;align-items:start'+(n.ak&&!n.ok?';background:var(--bad-tint);border-radius:8px;padding-left:8px':'')+'"><span class="muted num">'+fd(pd(n.d))+'</span><div>'+(n.ido||n.hom||n.lsz?'<div class="muted" style="font-size:12.5px">'+[n.ido,n.hom,n.lsz?n.lsz+(/fő/.test(n.lsz)?'':' fő'):''].filter(Boolean).join(' · ')+'</div>':'')+(n.ak?'<div style="font-weight:700;color:'+(n.ok?'var(--ok)':'var(--bad)')+'">'+(n.ok?'Akadály megoldva':'⚠ Akadály / esemény')+'</div>':'')+'<div style="white-space:pre-line;font-size:14px">'+esc(n.t)+'</div>'+((n.files||[]).length?'<div class="nthumbs">'+n.files.map(thumb).join('')+'</div>':'')+'</div><span class="evr" style="flex-direction:column;align-items:flex-end">'+(n.ak&&!n.ok?'<button class="btn sm" data-nok="'+n.id+'">Megoldva</button>':'')+'<button class="btn sm ghost" data-nvis="'+n.id+'">'+(n.vis?'Ügyfél látja':'Csak nekem')+'</button></span></div>'});
+  return h+'</div>'}
+function naploAdd(p){var tx=gv('nlg_t').trim(),fl=(view.natt||[]).slice();if(!tx&&!fl.length){toast('Írj bejegyzést vagy csatolj fotót');return}
+  var n={id:'n'+Date.now(),d:gv('nlg_d')||iso(TODAY),t:tx,files:fl,vis:(document.getElementById('nlg_v')||{}).checked?1:0,ido:gv('nlg_i'),hom:gv('nlg_h'),lsz:gv('nlg_l'),ak:(document.getElementById('nlg_a')||{}).checked?1:0,k:TPL[curIdx(p)].k};
+  p.naplo.push(n);view.ntext='';view.natt=[];if(n.ak)log(p,'Akadály / esemény a naplóban: '+tx.slice(0,80));toast('Bejegyzés mentve');render()}
+function enaploHtml(p){var L=(p.naplo||[]).slice().sort(function(a,b){return a.d<b.d?-1:1}),A=nplAll(p),e=esc;
+  var rows=L.map(function(n){var al=A.filter(function(x){return x.e.d===n.d});return '<tr><td>'+e(fdl(pd(n.d)))+'</td><td>'+e([n.ido,n.hom].filter(Boolean).join(', ')||'–')+'</td><td>'+e(n.lsz||'–')+'</td><td style="white-space:pre-line">'+e(n.t)+(al.length?'<div style="color:#555;font-size:12px">Alvállalkozói bejegyzés: '+al.map(function(x){return e(x.a.nev)+': '+e(x.e.t||'')}).join('; ')+'</div>':'')+'</td><td>'+(n.ak?(n.ok?'megoldott akadály':'<b>akadály / esemény</b>'):'–')+'</td><td>'+((n.files||[]).length?n.files.length+' fotó':'–')+'</td></tr>'}).join('');
+  return '<!doctype html><html lang="hu"><head><meta charset="utf-8"><title>Napi jelentések – '+e(p.nev)+'</title><style>body{font-family:Helvetica,Arial,sans-serif;font-size:13px;color:#222;max-width:1000px;margin:24px auto;padding:0 16px}table{border-collapse:collapse;width:100%}th,td{border:1px solid #bbb;padding:6px;vertical-align:top;text-align:left}th{background:#f2f2f2}h1{font-size:20px}.n{color:#666;font-size:12px}@media print{.p{display:none}}</style></head><body><button class="p" onclick="window.print()">Nyomtatás / PDF</button><h1>Napi jelentések – '+e(p.nev)+'</h1><p class="n">'+e(p.hely||'')+' · Kivitelező: General Contractor Team Kft. · Készült: '+e(fdl(TODAY))+'. A táblázat az e-építési napló napi jelentés mezőit követi (időjárás, hőmérséklet, létszám, elvégzett munka, események); az e-naplóba kézzel másolható át.</p><table><thead><tr><th>Dátum</th><th>Időjárás</th><th>Létszám</th><th>Elvégzett munka, megjegyzés</th><th>Esemény</th><th>Melléklet</th></tr></thead><tbody>'+(rows||'<tr><td colspan="6">Még nincs bejegyzés.</td></tr>')+'</tbody></table></body></html>'}
+function naploClick(d,p){if(!p)return false;
+  if(d.act==='nladd'){naploAdd(p);return true}
+  if(d.act==='enaplo'){openDoc(enaploHtml(p));return true}
+  if(d.nok){var n=(p.naplo||[]).filter(function(x){return x.id===d.nok})[0];if(n){n.ok=iso(TODAY);log(p,'Akadály megoldva: '+String(n.t).slice(0,60))}render();return true}
+  return false}
+
+/* ---- költségvetés vs. tény fázisonként ---- */
+function koltTabla(p){var G={},T0=TPL;p.kolt=p.kolt||[];
+  var add=function(k,f,v){if(!v)return;G[k]=G[k]||{bev:0,kot:0,kif:0};G[k][f]+=v};
+  var o=p.offer||{};if(o.amts)TPL.forEach(function(t){add(t.k,'bev',+o.amts[t.k]||0)});else{var tot=p.pays.filter(function(y){return !y.x}).reduce(function(a,y){return a+(+y.amt||0)},0),n=p.phases.filter(function(x){return x.st!=='skip'}).length;if(n)TPL.forEach(function(t,i){if(p.phases[i].st!=='skip')add(t.k,'bev',Math.round(tot/n))})}
+  (p.extra||[]).forEach(function(e){if(e.st==='ok'&&TPL[e.ph])add(TPL[e.ph].k,'bev',+e.amt||0)});
+  (p.alv||[]).forEach(function(a){var ks=a.phases||[];if(!ks.length)return;var d=(p.szk&&p.szk.docs||[]).filter(function(x){return x.id===a.id})[0],amt=d&&d.f&&+d.f.dij||(a.offer&&+a.offer.amt)||0;ks.forEach(function(k){add(k,'kot',Math.round(amt/ks.length))});
+    (a.pays||[]).forEach(function(y){if(y.st==='paid'){var k=y.k||ks[0];add(k,'kif',+y.amt||0)}})});
+  p.kolt.forEach(function(c){add(c.k,'kot',+c.amt||0);if(c.fiz)add(c.k,'kif',+c.amt||0)});
+  var rows=[],S0={bev:0,kot:0,kif:0};TPL.forEach(function(t,i){var g=G[t.k];if(!g||p.phases[i].st==='skip')return;var m=g.bev-g.kot;rows.push({t:t.t,k:t.k,bev:g.bev,kot:g.kot,kif:g.kif,m:m});S0.bev+=g.bev;S0.kot+=g.kot;S0.kif+=g.kif});
+  return {rows:rows,sum:S0}}
+function koltCard(p){var K=koltTabla(p),e=esc,pc=function(a,b){return b?Math.round(a/b*100)+'%':'–'};
+  var h='<div class="card" id="koltseg"><div class="head"><div><h3>Költségvetés vs. tény</h3><p class="muted" style="font-size:13px">Munkanemenként: az ügyfélnek szóló vállalkozói díj (bevétel), az alvállalkozói szerződések és egyéb költségek (elkötelezett), és ami már ki van fizetve. A különbség a bruttó fedezet, rezsi előtt. Csak te látod.</p></div></div>';
+  h+='<div class="tbl"><table><thead><tr><th>Munkanem</th><th class="r">Bevétel (nettó)</th><th class="r">Elkötelezett</th><th class="r">Kifizetve</th><th class="r">Fedezet</th></tr></thead><tbody>';
+  K.rows.forEach(function(r){h+='<tr><td>'+e(r.t)+'</td><td class="r num">'+ft(r.bev)+'</td><td class="r num">'+ft(r.kot)+'</td><td class="r num">'+ft(r.kif)+'</td><td class="r num" style="color:'+(r.m<0?'var(--bad)':'var(--ok)')+'">'+ft(r.m)+' <span class="muted">'+pc(r.m,r.bev)+'</span></td></tr>'});
+  h+='<tr style="font-weight:700"><td>Összesen</td><td class="r num">'+ft(K.sum.bev)+'</td><td class="r num">'+ft(K.sum.kot)+'</td><td class="r num">'+ft(K.sum.kif)+'</td><td class="r num" style="color:'+(K.sum.bev-K.sum.kot<0?'var(--bad)':'var(--ok)')+'">'+ft(K.sum.bev-K.sum.kot)+' <span class="muted">'+pc(K.sum.bev-K.sum.kot,K.sum.bev)+'</span></td></tr></tbody></table></div>';
+  var opts=TPL.map(function(t,i){return p.phases[i].st==='skip'?'':'<option value="'+t.k+'">'+e(t.t)+'</option>'}).join('');
+  h+='<details><summary class="muted" style="cursor:pointer;font-size:13px">Egyéb költség felvétele (anyag, gép, szállítás, zsák…) · '+(p.kolt||[]).length+' tétel</summary>'+((p.kolt||[]).length?'<div class="list">'+p.kolt.map(function(c,ix){return '<div class="row"><div><div class="t">'+e(c.t)+'</div><div class="s">'+e(TPL[kIdx(c.k)]?TPL[kIdx(c.k)].t:'')+' · '+ft(c.amt)+(c.fiz?' · kifizetve':'')+'</div></div><span class="evr"><button class="btn sm ghost" data-koltfiz="'+ix+'">'+(c.fiz?'Nem fizetett':'Kifizetve')+'</button><button class="xbtn" data-koltdel="'+ix+'">×</button></span></div>'}).join('')+'</div>':'')+'<div class="box"><div class="mini c2"><input type="text" id="ko_t" placeholder="Megnevezés, pl. szintező lábak"><select id="ko_k">'+opts+'</select><input type="text" id="ko_a" placeholder="Nettó Ft" inputmode="numeric"></div><button class="btn sm ghost" data-act="koltadd" style="align-self:flex-start">Hozzáadás</button></div></details>';
+  return h+'</div>'}
+function koltClick(d,p){if(!p)return false;p.kolt=p.kolt||[];
+  if(d.act==='koltadd'){var t=gv('ko_t').trim(),a=+String(gv('ko_a')).replace(/\D/g,'')||0;if(!t||!a){toast('Megnevezés és összeg kell');return true}p.kolt.push({t:t,k:gv('ko_k'),amt:a,d:iso(TODAY)});render();return true}
+  if(d.koltfiz!=null){var c=p.kolt[+d.koltfiz];if(c)c.fiz=c.fiz?0:1;render();return true}
+  if(d.koltdel!=null){p.kolt.splice(+d.koltdel,1);render();return true}
+  return false}
+
+/* ---- utókövetés: garancia, elégedettség ---- */
+function garInit(p){if(p.gar)return p.gar;var ai=kIdx('atad'),x=p.phases[ai];if(!x||x.st!=='done')return null;var ho=12;(p.szk&&p.szk.docs||[]).forEach(function(d){if(d.tip==='u'&&d.f&&+d.f.jot>ho)ho=+d.f.jot});
+  var at=x.dd||iso(TODAY),v=new Date(pd(at));v.setMonth(v.getMonth()+ho);p.gar={atad:at,ho:ho,veg:iso(v),bej:[]};return p.gar}
+function garCard(p){var g=garInit(p);if(!g)return '';var open=g.bej.filter(function(b){return b.st!=='lez'});
+  var h='<div class="card" id="garancia"><div class="head"><div><h3>Utókövetés, garancia</h3><p class="muted" style="font-size:13px">Átadva: <b>'+fd(pd(g.atad))+'</b> · jótállás '+g.ho+' hónap, lejár: <b>'+fd(pd(g.veg))+'</b>. Az ügyfél a portálon jelenthet be garanciális hibát; itt követed. Egy hónappal az átadás után elégedettség-kérdést, a lejárat előtt egy hónappal garanciális bejárást javasol a rendszer.</p></div><span class="evr"><button class="btn sm ghost" data-act="garkerd">Elégedettség-kérdés küldése'+(g.kerd?' <span class="muted">('+fd(pd(g.kerd))+')</span>':'')+'</button></span></div>';
+  if(g.bej.length){h+='<div class="list">';g.bej.forEach(function(b){h+='<div class="row" style="align-items:start"><div><div class="t">'+esc(b.t)+' <span class="pill '+(b.st==='lez'?'p-ok':(b.st==='folyamatban'?'p-info':'p-warn'))+'">'+(b.st==='lez'?'Lezárva':(b.st==='folyamatban'?'Folyamatban':'Új bejelentés'))+'</span></div><div class="s">'+fd(pd(b.d))+(b.ki?' · '+esc(b.ki):'')+(b.valasz?'<br>Válasz: '+esc(b.valasz):'')+'</div>'+((b.files||[]).length?'<div class="nthumbs">'+b.files.map(thumb).join('')+'</div>':'')+'</div><span class="evr">'+(b.st!=='lez'?'<input type="text" id="gv_'+esc(b.id)+'" placeholder="Válasz / mi történt" style="max-width:220px"><button class="btn sm ghost" data-garfoly="'+esc(b.id)+'">Folyamatban</button><button class="btn sm" data-garlez="'+esc(b.id)+'">Lezárás</button>':'')+'</span></div>'});h+='</div>'}
+  else h+='<p class="muted" style="font-size:13.5px">Nincs garanciális bejelentés.</p>';
+  h+='<div class="box"><div class="mini c2"><input type="text" id="gb_t" placeholder="Bejelentés rögzítése (pl. telefonon jelezte)"><button class="btn sm ghost" data-act="garadd">Felvétel</button></div></div>';
+  return h+'</div>'}
+function garClick(d,p){if(!p)return false;var g=p.gar;
+  if(d.act==='garadd'){g=garInit(p);if(!g)return true;var t=gv('gb_t').trim();if(!t){toast('Írd le a bejelentést');return true}g.bej.push({id:'g'+Date.now(),t:t,d:iso(TODAY),st:'uj',ki:'iroda'});log(p,'Garanciális bejelentés: '+t);render();return true}
+  if(d.act==='garkerd'){g=garInit(p);if(!g)return true;var n=0,M=(p.megr||[]).length?p.megr:[{nev:p.ugyfel,email:p.email,token:p.token}];M.forEach(function(m){if(mail(m.email,'Hogy vált be a felújítás? – '+p.nev,'<p>Tisztelt '+esc(nm(m.nev))+'!</p><p>Egy hónapja adtuk át a(z) <b>'+esc(p.nev)+'</b> munkát. Szeretnénk tudni, hogy minden rendben működik-e, és mennyire elégedett a munkánkkal. Ha bármi apróság kijavítandó, az ügyfélportálon a „Garanciális bejelentés” résznél jelezheti – a jótállás '+g.ho+' hónapig, '+esc(fd(pd(g.veg)))+'-ig tart.</p><p>Ha elégedett volt, nagyon sokat segítene egy rövid értékelés a Google-on – köszönjük!</p>'+btnHtml(m.token?megrUrl(p,m):portalUrl(p),'Ügyfélportál')+sign()))n++});g.kerd=iso(TODAY);log(p,'Elégedettség-kérdés kiküldve ('+n+')');toast(n?'Elküldve ('+n+')':'Nincs e-mail cím');render();return true}
+  if(d.garfoly||d.garlez){var id=d.garfoly||d.garlez,b=(g&&g.bej||[]).filter(function(x){return x.id===id})[0];if(!b)return true;var v=gv('gv_'+id).trim();if(v)b.valasz=v;b.st=d.garlez?'lez':'folyamatban';if(d.garlez)b.lezd=iso(TODAY);
+    var M=(p.megr||[]).length?p.megr:[{nev:p.ugyfel,email:p.email,token:p.token}];M.forEach(function(m){if(b.ki!=='iroda'&&(!b.mid||b.mid===m.id))mail(m.email,(d.garlez?'Garanciális bejelentés lezárva: ':'Garanciális bejelentés folyamatban: ')+b.t,'<p>Tisztelt '+esc(nm(m.nev))+'!</p><p>A bejelentése (<b>'+esc(b.t)+'</b>) '+(d.garlez?'lezárult':'folyamatban van')+'.'+(v?' '+esc(v):'')+'</p>'+btnHtml(m.token?megrUrl(p,m):portalUrl(p),'Ügyfélportál')+sign())});
+    log(p,'Garancia: '+b.t+' – '+(d.garlez?'lezárva':'folyamatban'));render();return true}
+  return false}
+
+/* ---- sablonok az ajánlatkészítőhöz (projekttípusonként) ---- */
+function sablonBox(){S.sablon=S.sablon||[];var o=S.sablon.map(function(s,i){return '<option value="'+i+'">'+esc(s.nev)+' ('+s.mods.length+' munkanem)</option>'}).join('');
+  return '<div class="box"><div class="mini c2"><select id="sb_sel"><option value="">Sablon betöltése…</option>'+o+'</select><button class="btn sm ghost" data-act="sbload">Betöltés</button><input type="text" id="sb_nev" placeholder="Mentés sablonként: név, pl. Terasz-felújítás"><button class="btn sm ghost" data-act="sbsave">Mentés sablonként</button></div><span class="muted" style="font-size:12.5px">A sablon a kiválasztott munkanemeket, a munkanapokat, az előleg arányát és a fordított áfát menti; betöltéskor csak ezeket írja felül, a megrendelő adatait nem.'+(S.sablon.length?' Törlés: <button class="lnkb" data-act="sbdel">kiválasztott sablon törlése</button>':'')+'</span></div>'}
+function sablonClick(d){S.sablon=S.sablon||[];
+  if(d.act==='sbsave'){var n=gv('sb_nev').trim();if(!n){toast('Adj nevet a sablonnak');return true}var mods=TPL.filter(function(t){return OF.mods[t.k]}).map(function(t){return t.k});if(!mods.length){toast('Előbb válaszd ki a munkanemeket');return true}
+    var s={nev:n,mods:mods,wd:JSON.parse(JSON.stringify(OF.wd||{})),eloleg:OF.eloleg,rev:OF.rev?1:0,rate:JSON.parse(JSON.stringify(OF.rate||{}))};var ex=S.sablon.findIndex(function(x){return x.nev===n});if(ex>=0)S.sablon[ex]=s;else S.sablon.push(s);toast('Sablon mentve: '+n);render();return true}
+  if(d.act==='sbload'){var s2=S.sablon[+gv('sb_sel')];if(!s2){toast('Válassz sablont');return true}OF.mods={};s2.mods.forEach(function(k){OF.mods[k]=1});OF.wd=JSON.parse(JSON.stringify(s2.wd||{}));if(s2.eloleg!=null)OF.eloleg=s2.eloleg;OF.rev=s2.rev?1:0;if(s2.rate)OF.rate=Object.assign({},OF.rate,s2.rate);toast('Sablon betöltve: '+s2.nev);render();return true}
+  if(d.act==='sbdel'){var i=+gv('sb_sel');if(S.sablon[i]){S.sablon.splice(i,1);toast('Sablon törölve');render()}return true}
+  return false}
+
+/* ---- CRM: következő lépés és dátum a megkeresésnél ---- */
+function leadKov(l){return '<div class="mini c2" style="margin-top:6px"><input type="text" data-lkov="'+esc(l.id)+'" value="'+esc(l.kov||'')+'" placeholder="Következő lépés, pl. visszahívni az ajánlatról"><input type="date" data-lkovd="'+esc(l.id)+'" value="'+esc(l.kovd||'')+'" title="Mikor?"></div>'}
+function leadTodo(L){var ma=iso(TODAY);S.leads.forEach(function(l){if(l.st==='szerz'||l.st==='elv'||!l.kovd)return;if(l.kovd<=ma)L.push({pr:l.kovd<ma?0:1,kind:'crm',t:'Követés: '+(l.nev||'?')+' – '+(l.kov||'következő lépés'),s:(l.kovd<ma?'lejárt: ':'esedékes: ')+fd(pd(l.kovd))+' · '+(l.tipus||''),go:'megk'})});
+  S.leads.forEach(function(l){if(l.st==='ajanlat'&&!l.kovd&&l.offer&&l.offer.d&&iso(addD(pd(l.offer.d),5))<=ma)L.push({pr:1,kind:'crm',t:'Ajánlat kiküldve, nincs visszajelzés: '+(l.nev||'?'),s:'kiküldve '+fd(pd(l.offer.d))+' · hívd fel, vagy állíts be következő lépést',go:'megk'})})}
+TODO_K.crm=['Követés','p-brass'];TODO_K.hib=['Hiba','p-warn'];TODO_K.gar=['Garancia','p-brass'];
+
+/* ---- mobil: alsó sáv ---- */
+function mobBar(){var b=document.getElementById('mob');if(!b){b=document.createElement('nav');b.id='mob';b.setAttribute('aria-label','Mobil menü');document.body.appendChild(b)}
+  var T=[['att','Ma','☰'],['proj','Projektek','▦'],['megk','Megkeresések','✉'],['nap','Naptár','▭'],['qs','Keresés','🔍']];var n=S?todoAll().filter(function(x){return x.pr<=1}).length:0;
+  b.innerHTML=T.map(function(t){return '<button type="button" data-mob="'+t[0]+'"'+(view.tab===t[0]?' aria-current="page"':'')+'><span class="ic">'+t[2]+'</span><span>'+t[1]+'</span>'+(t[0]==='att'&&n?'<span class="cnt">'+n+'</span>':'')+'</button>'}).join('');
+  b.onclick=function(e){var x=e.target.closest('[data-mob]');if(!x)return;if(x.dataset.mob==='qs'){qsOpen();return}view.tab=x.dataset.mob;render();window.scrollTo(0,0)}}
+
 /* GeneralTeam-specifikus műveletek */
 function nm(n){return String(n||'').replace(' (minta)','').trim()}
 function gtClick(d,p,b){
@@ -955,13 +1072,13 @@ function gtClick(d,p,b){
       if(!r){fin('');return}
       r.withSuccessHandler(function(res){fin(res.id)}).withFailureHandler(function(err){b.disabled=false;toast('Nem sikerült: '+(err&&err.message||err))}).irodaFeltolt(CFG.k,p.id,'alairas-vallalkozo.png','image/png',png)});return true}
   /* napló */
-  if(d.act==='nladd'){var tx=gv('nlg_t').trim(),fl=(view.natt||[]).slice();if(!tx&&!fl.length){toast('Írj pár szót vagy tölts fel fotót');return true}
-    p.naplo=p.naplo||[];p.naplo.push({id:'n'+Date.now(),d:iso(TODAY),t:tx,files:fl,vis:(document.getElementById('nlg_v')||{}).checked?1:0});view.ntext='';view.natt=[];toast('Bejegyzés mentve');render();return true}
+  if(d.act==='nladd'){naploAdd(p);return true}
   if(d.nvis){var nn=(p.naplo||[]).filter(function(x){return x.id===d.nvis})[0];if(nn){nn.vis=nn.vis?0:1;render()}return true}
   return false}
 function gtChange(t,p){
   if(t.dataset.ofb){OF[t.dataset.ofb]=t.checked?1:0;render();return true}
   if(t.dataset.szf){p.szf=p.szf||szfDef(p);p.szf[t.dataset.szf]=t.value;save();return true}
+  if(t.id==='hbupl'){upFiles(t.files,p.id,function(f){view.hatt=(view.hatt||[]).concat([f]);render()});return true}
   if(t.id==='nlupl'){view.ntext=gv('nlg_t');upFiles(t.files,p.id,function(f){view.natt=(view.natt||[]).concat([f]);view.ntext=gv('nlg_t')||view.ntext;render()});return true}
   if(t.dataset.addph!=null){if(t.value!==''){view.ph=+t.value;view.dl=null;render()}return true}
   return false}
@@ -1346,7 +1463,7 @@ function xFormExtra(p){var o='<option value="">Generál (saját vagy alvállalko
 /* ---- színes ütemterv ---- */
 function gLegend(p){var used={};TPL.forEach(function(t,i){if(p.phases[i].st!=='skip')used[t.g]=1});return '<div class="glg">'+G.filter(function(g){return used[g[0]]}).map(function(g){return '<span><i style="background:'+GCOL[g[0]]+'"></i>'+esc(g[1])+'</span>'}).join('')+'<span><i class="pat"></i>pótmunka</span></div>'}
 /* ---- közös ---- */
-function h3Click(d,p,b){return h11Click(d,p)||h10Click(d,p,b)||h9Click(d,p,b)||h8Click(d,p,b)||g5Click(d)||h7Click(d,p,b)||h6Click(d,p,b)||h4Click(d,p,b)||szkClick(d,p,b)||fuClick(d,p)||xClick(d,p)}
+function h3Click(d,p,b){return hibClick(d,p)||naploClick(d,p)||koltClick(d,p)||garClick(d,p)||sablonClick(d)||h11Click(d,p)||h10Click(d,p,b)||h9Click(d,p,b)||h8Click(d,p,b)||g5Click(d)||h7Click(d,p,b)||h6Click(d,p,b)||h4Click(d,p,b)||szkClick(d,p,b)||fuClick(d,p)||xClick(d,p)}
 
 /* ===== v12: építési napló + akadályok (alvállalkozóktól), teljesítésigazolás, partnerjelentkezések ===== */
 function nplAll(p){var L=[];(p.alv||[]).forEach(function(a,ix){(a.naplo||[]).forEach(function(e){L.push({a:a,ix:ix,e:e})})});return L.sort(function(x,y){return x.e.d<y.e.d?1:-1})}
@@ -1707,7 +1824,7 @@ function pShort(t){var R=[[/ütemterv/i,'Ütemterv'],[/akadály/i,'Akadályok'],
 var CHEV='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 function projEnh(p){var secs=[],used={},ci=curIdx(p);
   function keepOf(c,hd){var k=hd;while(k&&k.parentNode!==c)k=k.parentNode;return k}
-  function add(el,title,key,hd){if(!title)return;key=key||pSlug(title);if(used[key]){used[key]++;key+='-'+used[key]}else used[key]=1;
+  function add(el,title,key,hd){if(!title)return;if(!key&&el.id&&!/^sec-/.test(el.id))key=el.id;key=key||pSlug(title);if(used[key]){used[key]++;key+='-'+used[key]}else used[key]=1;
     el.id='sec-'+key;el.classList.add('psec');var kp=hd?keepOf(el,hd):null;if(kp)kp.classList.add('psec-keep');
     var tg=document.createElement('button');tg.type='button';tg.className='ctog';tg.setAttribute('data-ctog',key);tg.title='Összecsukás / kinyitás';tg.setAttribute('aria-label',title+' – összecsukás vagy kinyitás');tg.setAttribute('aria-expanded',PCOL[key]?'false':'true');tg.innerHTML=CHEV;el.insertBefore(tg,el.firstChild);
     if(PCOL[key])el.classList.add('pcol');secs.push({k:key,t:title})}
@@ -1888,7 +2005,7 @@ function tercModule(it){if(it.mn==='42')return /parkett|lamin|vinyl|szőnyeg|pvc
 function vAjan(){
   var c=ofCalc(),l=ofLead(),lf=l?(l.files||[]):[],att=ofAtt(),ss=ofSched();
   var h=tDatalist()+bar('Ajánlatkészítő','Munkanemenként tételesen (anyagár + munkadíj × mennyiség) vagy egy összeggel. Gépelés közben a korábbi ajánlataid tételeit ajánlja, áraikkal együtt. Az ütemterv magától áll össze.');
-  h+='<div class="offer"><div class="card"><h2>Adatok</h2>'+(l?'<div class="box"><span>Megkeresés: <b>'+esc(l.nev)+'</b> · '+esc(l.tipus)+'</span>'+(l.note?'<span class="muted">'+esc(l.note)+'</span>':'')+(l.memo?'<span>Jegyzeted: '+esc(l.memo)+'</span>':'')+'</div>':'')+'<div class="grid g2">'+
+  h+='<div class="offer"><div class="card"><h2>Adatok</h2>'+sablonBox()+(l?'<div class="box"><span>Megkeresés: <b>'+esc(l.nev)+'</b> · '+esc(l.tipus)+'</span>'+(l.note?'<span class="muted">'+esc(l.note)+'</span>':'')+(l.memo?'<span>Jegyzeted: '+esc(l.memo)+'</span>':'')+'</div>':'')+'<div class="grid g2">'+
    fld('Megrendelő','ugyfel','text')+fld('E-mail','email','text')+fld('Munka megnevezése','targy','text')+fld('Helyszín','hely','text')+fld('Alapterület (m²)','m2','number')+fld('Tervezett kezdés','start','date')+fld('Érvényes eddig','erv','date')+fld('Előleg (%)','eloleg','number')+'</div>';
   h+='<label class="chk" style="border:0"><input type="checkbox" data-ofb="rev"'+(OF.rev?' checked':'')+'><span>Fordított ÁFA (építési szolgáltatás áfakörös vállalkozásnak)</span></label>';
   if(l&&l.fee)h+='<label class="chk" style="border:0"><input type="checkbox" data-ofb="credit"'+(OF.credit?' checked':'')+'><span>A helyszíni felmérés díjának beszámítása ('+ft(l.fee)+')</span></label>';
@@ -1985,7 +2102,7 @@ function vBeall(){
    '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';h+=jelszoCard();
   main.innerHTML=h;
 }
-function render(){renderMenu();hashSet();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}
+function render(){renderMenu();mobBar();hashSet();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}
 
 function btnHtml(url,txt){return '<p><a href="'+esc(url)+'" style="display:inline-block;background:#0F2B36;color:#fff;padding:11px 18px;text-decoration:none;border-radius:4px">'+txt+'</a></p>'}
 function sign(){return '<p>Üdvözlettel:<br>Benkő Ádám<br>General Contractor Team Kft. · '+esc(S.settings.telefon||'')+'<br>generalteam.hu</p>'}
@@ -2022,7 +2139,7 @@ main.addEventListener('click',function(e){
     xOk(p,-1);p.extra.filter(function(e){return e.st==='ok'}).forEach(function(e){rows0.push([e.t+' (többlettartalom)',e.desc||'',+e.amt||0])});
     p.offer={d:p.start,src:'proj',sum:p.pays.reduce(function(s0,y){return s0+y.amt},0),targy:p.nev,hely:p.hely,m2:p.m2,rows:rows0,mil:p.pays.map(function(y){return [y.t,y.amt]})};log(p,'Ajánlat összesítve a projekt adataiból');toast('Ajánlat összesítve, az ügyfél is látja a portálon');render()}
   else if(d.evdel){S.events=S.events.filter(function(x){return x.id!==d.evdel});toast('Időpont törölve');render()}
-  else if(d.open){view.tab='proj';view.pid=d.open;view.ph=d.openph!=null?+d.openph:null;view.dl=null;render();if(d.anchor){var an=d.anchor;setTimeout(function(){var e=document.getElementById(an);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
+  else if(d.open){view.tab='proj';view.pid=d.open;view.ph=d.openph!=null?+d.openph:null;view.dl=null;render();if(d.anchor){var an=d.anchor;setTimeout(function(){var e=pOpen(an)||document.getElementById(an);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
   if(d.act==='qs'){qsOpen();return}
   if(snoozeClick(d))return;
   if(d.act==='heti'){var hp=S.projects.filter(function(x){return x.id===view.pid})[0];if(hp)weeklySend(hp);return}
@@ -2137,6 +2254,7 @@ main.addEventListener('click',function(e){
 main.addEventListener('change',function(e){var t=e.target,p=S.projects.filter(function(x){return x.id===view.pid})[0];if(h2Change(t,p))return;if(gtChange(t,p))return;if(partChange(t))return;if(alvChange(t,p))return;
   if(t.dataset.set){S.settings[t.dataset.set]=t.value.trim();toast('Mentve');save();return}
   if(t.dataset.pe){p.email=t.value.trim();toast('Ügyfél e-mail mentve');save();return}
+  if(t.dataset.lkov||t.dataset.lkovd){var lk=S.leads.filter(function(x){return x.id===(t.dataset.lkov||t.dataset.lkovd)})[0];if(lk){if(t.dataset.lkov)lk.kov=t.value;else lk.kovd=t.value;save();toast('Követés mentve')}return}
   if(t.dataset.lmemo){var lm=S.leads.filter(function(x){return x.id===t.dataset.lmemo})[0];if(lm){lm.memo=t.value;toast('Jegyzet mentve');save()}return}
   if(t.dataset.kert!=null){p.kont[+t.dataset.kert].ert=t.checked;save();return}
   if(t.id==='pe_k'||t.id==='ne_k'){var lf=document.getElementById(t.id==='pe_k'?'pe_l':'ne_l');if(lf){if(t.value==='konz'){lf.value=meetUrl();lf.placeholder='Meet / Zoom link'}else{lf.value=t.id==='pe_k'&&p?(p.hely||''):'';lf.placeholder='Helyszín'}}return}

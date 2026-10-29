@@ -1025,6 +1025,41 @@ function mobBar(){var b=document.getElementById('mob');if(!b){b=document.createE
   b.innerHTML=T.map(function(t){return '<button type="button" data-mob="'+t[0]+'"'+(view.tab===t[0]?' aria-current="page"':'')+'><span class="ic">'+t[2]+'</span><span>'+t[1]+'</span>'+(t[0]==='att'&&n?'<span class="cnt">'+n+'</span>':'')+'</button>'}).join('');
   b.onclick=function(e){var x=e.target.closest('[data-mob]');if(!x)return;if(x.dataset.mob==='qs'){qsOpen();return}view.tab=x.dataset.mob;render();window.scrollTo(0,0)}}
 
+/* ===== v29: külső számlázás (Számlázz.hu / Billingo) az irodából ===== */
+function szamlaOn(){var z=S.settings&&S.settings.szamla;return !!(z&&z.sys&&z.van)}
+function szlaTag(y){var z=y.szla;if(!z)return '';var t=(z.tip==='szamla'?'Számla ':'Díjbekérő ')+z.no;return ' <span class="pill p-brass" title="'+esc((z.sys==='billingo'?'Billingo':'Számlázz.hu')+' · '+fd(pd(z.d))+' · bruttó '+ft(z.brutto)+' Ft · határidő '+fd(pd(z.hat)))+'">'+(z.url?'<a href="'+esc(z.url)+'" target="_blank" rel="noopener" style="color:inherit">'+esc(t)+'</a>':esc(t))+'</span>'}
+function szamlaKi(ref,tip){var a=ref.split('|'),pp=S.projects.filter(function(x){return x.id===a[0]})[0],py=pp&&pp.pays[+a[1]];if(!py)return;var r=gs();if(!r){toast('Nincs kapcsolat a háttérrendszerrel');return}
+  var dij=tip!=='szamla';if(!dij&&!confirm('Végleges számla kiállítása a külső rendszerben: '+py.t+' – '+ft(py.amt)+' Ft + áfa. Folytatod?'))return;
+  toast((dij?'Díjbekérő':'Számla')+' kiállítása a számlázóban…');
+  r.withSuccessHandler(function(res){if(!res||!res.no){toast('A számlázó nem adott vissza bizonylatszámot');return}
+    py.szla={no:res.no,id:res.id||null,url:res.url||'',sys:res.sys,tip:res.tip,d:res.d,hat:res.hat,brutto:res.brutto,netto:res.netto,afa:res.afa,vevo:res.vevo||''};
+    if(res.file)py.docs=(py.docs||[]).concat([res.file]);
+    if(dij){py.st='invoiced';py.invd=iso(TODAY)}
+    log(pp,(dij?'Díjbekérő':'Számla')+' kiállítva ('+(res.sys==='billingo'?'Billingo':'Számlázz.hu')+'): '+res.no+' – '+py.t+', bruttó '+ft(res.brutto)+' Ft, határidő '+fd(pd(res.hat))+(res.sent?', e-mailben elküldve: '+(res.vevo||''):', e-mail nem ment ki (nincs cím)'));
+    toast((dij?'Díjbekérő':'Számla')+' kész: '+res.no+(res.sent?' · elküldve az ügyfélnek':' · nincs ügyfél e-mail'));save();render()
+  }).withFailureHandler(function(err){toast('Számlázás sikertelen: '+((err&&err.message)||err))}).irodaSzamla(CFG.k,pp.id,+a[1],dij?'dij':'szamla')}
+function szamlaCard(){var z=(S.settings&&S.settings.szamla)||{},sys=z.sys||'';
+  var h='<div class="card" style="margin-top:16px" id="szamlazas"><h2>Számlázás külső rendszerrel</h2><p class="muted" style="font-size:13.5px">A díjbekérőt és a számlát a saját számlázód állítja ki (NAV-bekötéssel), az iroda csak elindítja: a „Számla kiállítása” gomb díjbekérőt készít, a PDF a projekt mappájába és az ügyfélportálra kerül, az ügyfél e-mailt kap. A kulcs csak a háttérrendszerben tárolódik.</p>';
+  h+='<div class="mini c2"><label class="fld">Rendszer<select id="sz_sys"><option value=""'+(sys?'':' selected')+'>nincs (kézi számlázás)</option><option value="szamlazz"'+(sys==='szamlazz'?' selected':'')+'>Számlázz.hu (Számla Agent)</option><option value="billingo"'+(sys==='billingo'?' selected':'')+'>Billingo (API v3)</option></select></label>'+
+   '<label class="fld">API-kulcs'+(z.van?' <span class="muted">(beállítva – csak cseréhez írd be)</span>':'')+'<input type="password" id="sz_key" autocomplete="off" placeholder="'+(z.van?'••••••••':'Agent-kulcs / API key')+'"></label></div>';
+  h+='<div class="mini c3"><label class="fld">Áfakulcs<select id="sz_afa">'+[['27','27%'],['AAM','AAM – alanyi adómentes'],['F.AFA','F.AFA – fordított adózás'],['5','5%'],['0','0%']].map(function(x){return '<option value="'+x[0]+'"'+((z.afa||'27')===x[0]?' selected':'')+'>'+x[1]+'</option>'}).join('')+'</select></label>'+
+   '<label class="fld">Fizetési mód<select id="sz_fiz">'+['Átutalás','Készpénz','Bankkártya'].map(function(x){return '<option'+((z.fizmod||'Átutalás')===x?' selected':'')+'>'+x+'</option>'}).join('')+'</select></label>'+
+   '<label class="fld">Fizetési határidő (nap)<input type="number" id="sz_hat" min="0" value="'+(z.hat||8)+'"></label></div>';
+  h+='<div class="mini c3" data-szsys="szamlazz" style="'+(sys==='szamlazz'?'':'display:none')+'"><label class="fld">Számlaszám-előtag (ha több tömböd van)<input type="text" id="sz_elotag" value="'+esc(z.elotag||'')+'" placeholder="pl. GT"></label></div>';
+  h+='<div class="mini c3" data-szsys="billingo" style="'+(sys==='billingo'?'':'display:none')+'"><label class="fld">Számlatömb azonosító (block_id)<input type="text" id="sz_block" value="'+esc(z.blockId||'')+'"></label><label class="fld">Bankszámla azonosító (bank_account_id)<input type="text" id="sz_bank" value="'+esc(z.bankId||'')+'"></label><span class="muted" style="font-size:12.5px;align-self:end">A „Kapcsolat ellenőrzése” kilistázza és kitölti őket.</span></div>';
+  h+='<div class="actions"><button class="btn sm" data-act="szbeall">Mentés</button><button class="btn sm sec" data-act="szteszt"'+(z.van?'':' disabled')+'>Kapcsolat ellenőrzése</button>'+(z.van?'<button class="btn sm ghost" data-act="sztorol">Kulcs törlése</button>':'')+'</div>';
+  h+='<p class="muted" style="font-size:12.5px">Számlázz.hu: Beállítások → Számla Agent → új kulcs. Billingo: Beállítások → API → új kulcs (Billingo-előfizetés kell az API-hoz). A vevő neve, címe és adószáma a megrendelő szerződéséből kerül át – a címet „1112 Budapest, Bodajk u. 28.” alakban add meg.</p></div>';
+  return h}
+function szamlaClick(d){if(d.act!=='szbeall'&&d.act!=='szteszt'&&d.act!=='sztorol')return false;var r=gs();if(!r){toast('Nincs kapcsolat a háttérrendszerrel');return true}
+  var done=function(pub){S.settings.szamla=pub;save();render()};
+  if(d.act==='sztorol'){if(!confirm('Törlöd a számlázó kulcsát? A díjbekérők ezután kézzel készülnek.'))return true;r.withSuccessHandler(function(pub){toast('Kulcs törölve');done(pub)}).withFailureHandler(function(e){toast('Hiba: '+(e.message||e))}).irodaSzamlaBeall(CFG.k,{torol:1});return true}
+  if(d.act==='szbeall'){var cfg={sys:gv('sz_sys'),afa:gv('sz_afa'),fizmod:gv('sz_fiz'),hat:+gv('sz_hat')||8,elotag:gv('sz_elotag'),blockId:gv('sz_block'),bankId:gv('sz_bank')},k=gv('sz_key');if(k)cfg.key=k;
+    r.withSuccessHandler(function(pub){toast(pub.sys?(pub.van?'Számlázó beállítva: '+(pub.sys==='billingo'?'Billingo':'Számlázz.hu'):'Mentve – még hiányzik az API-kulcs'):'Külső számlázás kikapcsolva');done(pub)}).withFailureHandler(function(e){toast('Hiba: '+(e.message||e))}).irodaSzamlaBeall(CFG.k,cfg);return true}
+  toast('Kapcsolat ellenőrzése…');r.withSuccessHandler(function(res){if(res&&res.blocks){var z=S.settings.szamla||{},ch=false;if(!z.blockId&&res.blocks[0]){z.blockId=String(res.blocks[0].id);ch=true}if(!z.bankId&&res.banks&&res.banks[0]){z.bankId=String(res.banks[0].id);ch=true}
+      toast('Billingo OK · tömbök: '+res.blocks.map(function(b){return b.id+' '+b.nev}).join(', ')+(res.banks&&res.banks.length?' · bankszámlák: '+res.banks.map(function(b){return b.id+' '+b.nev}).join(', '):''));
+      if(ch){S.settings.szamla=z;r.withSuccessHandler(function(pub){S.settings.szamla=pub;save();render()}).irodaSzamlaBeall(CFG.k,{blockId:z.blockId,bankId:z.bankId})}}else toast((res&&res.info)||'OK')}).withFailureHandler(function(e){toast('Kapcsolat sikertelen: '+(e.message||e))}).irodaSzamlaTeszt(CFG.k);return true}
+document.addEventListener('change',function(e){var t=e.target;if(t&&t.id==='sz_sys')[].forEach.call(document.querySelectorAll('[data-szsys]'),function(el){el.style.display=el.dataset.szsys===t.value?'':'none'})});
+
 /* GeneralTeam-specifikus műveletek */
 function nm(n){return String(n||'').replace(' (minta)','').trim()}
 function gtClick(d,p,b){
@@ -2078,8 +2113,8 @@ function vPenz(){
   var h=bar('Pénzügyek','Előlegek, részszámlák és végszámlák minden projektben.');
   h+='<div class="grid g4">'+kpi(ft(s.paid),'befolyt')+kpi(ft(s.invoiced),'kiszámlázva, fizetésre vár')+kpi(ft(s.due),'számlázható most')+kpi(ft(s.future),'később esedékes')+'</div>';
   h+='<div class="card"><div class="tbl"><table><thead><tr><th>Projekt</th><th>Mérföldkő</th><th class="r">Összeg (nettó)</th><th>Állapot</th><th></th></tr></thead><tbody>';
-  rows.forEach(function(x){var y=x[1];h+='<tr><td>'+esc(x[0].nev)+'<div class="muted" style="font-size:12.5px">'+esc(x[0].ugyfel)+'</div></td><td>'+esc(y.t)+((y.docs||[]).length?'<div>'+y.docs.map(fileRow).join('')+'</div>':'')+'</td><td class="r num">'+ft(y.amt)+'</td><td>'+payPill(y)+'</td><td class="r">'+
-    (y.st==='due'?'<button class="btn sm" data-inv="'+x[0].id+'|'+x[2]+'">Számla kiállítása</button>':(y.st==='invoiced'?'<button class="btn sm sec" data-paid="'+x[0].id+'|'+x[2]+'">Befizetve</button>':''))+' <label class="btn sm ghost" style="cursor:pointer" title="Díjbekérő vagy számla csatolása – az ügyfél a portálon letöltheti">PDF<input type="file" data-payupl="'+x[0].id+'|'+x[2]+'" hidden accept=".pdf,image/*"></label></td></tr>'});
+  rows.forEach(function(x){var y=x[1];h+='<tr><td>'+esc(x[0].nev)+'<div class="muted" style="font-size:12.5px">'+esc(x[0].ugyfel)+'</div></td><td>'+esc(y.t)+((y.docs||[]).length?'<div>'+y.docs.map(fileRow).join('')+'</div>':'')+'</td><td class="r num">'+ft(y.amt)+'</td><td>'+payPill(y)+szlaTag(y)+'</td><td class="r">'+
+    (y.st==='due'?'<button class="btn sm" data-inv="'+x[0].id+'|'+x[2]+'">'+(szamlaOn()?'Díjbekérő a számlázóból':'Számla kiállítása')+'</button>':(y.st==='invoiced'?'<button class="btn sm sec" data-paid="'+x[0].id+'|'+x[2]+'">Befizetve</button>':''))+(y.szla&&y.szla.tip==='dij'&&szamlaOn()&&y.st!=='due'?' <button class="btn sm ghost" data-szla2="'+x[0].id+'|'+x[2]+'">Számla a díjbekérőből</button>':'')+' <label class="btn sm ghost" style="cursor:pointer" title="Díjbekérő vagy számla csatolása – az ügyfél a portálon letöltheti">PDF<input type="file" data-payupl="'+x[0].id+'|'+x[2]+'" hidden accept=".pdf,image/*"></label></td></tr>'});
   h+='</tbody></table></div><p class="muted" style="font-size:13px">A részszámla a munkanem-csoport készre jelentésének átvételekor válik kiállíthatóvá, a végszámla az átadás-átvétel után.</p></div>';
   main.innerHTML=h;
 }
@@ -2099,7 +2134,7 @@ function vBeall(){
    '<p class="muted" style="font-size:13px">Bekapcsolva minden közelgő időpont és leadási határidő meghívóként kerül a te naptáradba, az ügyfél és a pipált kapcsolattartók naptárába. Ha egy időpont vagy határidő módosul (bármelyik fél kérésére, a másik elfogadása után), a bejegyzés mindenkinél magától frissül. A mintaprojektek kimaradnak.</p></div>'+
    '<div class="card"><h2>Linkek</h2><div class="row"><div><div class="t">Weboldal ajánlatkérővel</div><div class="s" style="overflow-wrap:anywhere">'+esc(web)+'</div></div><a class="btn sm ghost" href="'+esc(web)+'" target="_blank" rel="noopener">Megnyitás</a></div>'+
    '<div class="row"><div><div class="t">Ügyfélportál</div><div class="s">Minden projekt saját linket kap, a projekt fejlécében találod.</div></div></div>'+
-   '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';h+=jelszoCard();
+   '<h2 style="margin-top:8px">Mintaadatok</h2><p class="muted" style="font-size:13.5px">A „(minta)” jelölésű projektek és megkeresések csak a bemutatót szolgálják. Ha élesben kezded használni, töröld őket.</p><div class="actions"><button class="btn sm sec" data-act="cleardemo">Mintaadatok törlése</button></div></div></div>';h+=jelszoCard()+szamlaCard();
   main.innerHTML=h;
 }
 function render(){renderMenu();mobBar();hashSet();({att:vAtt,megk:vMegk,proj:vProj,ajan:vAjan,tet:vTetel,nap:vNap,penz:vPenz,part:vPart,beall:vBeall})[view.tab]();save()}
@@ -2140,11 +2175,14 @@ main.addEventListener('click',function(e){
     p.offer={d:p.start,src:'proj',sum:p.pays.reduce(function(s0,y){return s0+y.amt},0),targy:p.nev,hely:p.hely,m2:p.m2,rows:rows0,mil:p.pays.map(function(y){return [y.t,y.amt]})};log(p,'Ajánlat összesítve a projekt adataiból');toast('Ajánlat összesítve, az ügyfél is látja a portálon');render()}
   else if(d.evdel){S.events=S.events.filter(function(x){return x.id!==d.evdel});toast('Időpont törölve');render()}
   else if(d.open){view.tab='proj';view.pid=d.open;view.ph=d.openph!=null?+d.openph:null;view.dl=null;render();if(d.anchor){var an=d.anchor;setTimeout(function(){var e=pOpen(an)||document.getElementById(an);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})},60)}}
+  if(szamlaClick(d))return;
   if(d.act==='qs'){qsOpen();return}
   if(snoozeClick(d))return;
   if(d.act==='heti'){var hp=S.projects.filter(function(x){return x.id===view.pid})[0];if(hp)weeklySend(hp);return}
   else if(d.pid){view.pid=d.pid;view.ph=null;view.dl=null;view.mv=null;view.mtext='';view.matt=[];view.amwd=view.amamt=null;render()}
   else if(d.ph){view.ph=+d.ph;view.dl=null;view.amwd=view.amamt=null;render()}
+  else if(d.inv&&szamlaOn()){szamlaKi(d.inv,'dij')}
+  else if(d.szla2){szamlaKi(d.szla2,'szamla')}
   else if(d.inv){var a=d.inv.split('|'),pp=S.projects.filter(function(x){return x.id===a[0]})[0];var py=pp.pays[+a[1]];py.st='invoiced';py.invd=iso(TODAY);log(pp,'Díjbekérő kiküldve: '+py.t);var sent=mail(pp.email,'Díjbekérő: '+pp.nev+' – '+py.t,'<p>Tisztelt '+esc(nm(pp.ugyfel))+'!</p><p>A(z) <b>'+esc(py.t.toLowerCase())+'</b> esedékes összege: <b>'+ft(py.amt)+' + áfa</b>.</p><p>A számlát és a fizetési adatokat külön küldjük. (Tesztüzem: online fizetés még nincs bekötve.)</p>'+btnHtml(portalUrl(pp),'Projekt megnyitása')+sign());toast(sent?'Díjbekérő elküldve az ügyfélnek':'Rögzítve. Az ügyfélnek nincs e-mail címe');render()}
   else if(d.paid){var a2=d.paid.split('|'),p2_=S.projects.filter(function(x){return x.id===a2[0]})[0];p2_.pays[+a2[1]].st='paid';log(p2_,'Befizetve: '+p2_.pays[+a2[1]].t);toast('Befizetés rögzítve');render()}
   else if(d.lead){var a3=d.lead.split('|'),l=S.leads.filter(function(x){return x.id===a3[0]})[0];

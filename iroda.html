@@ -2049,7 +2049,11 @@ function szk1Send(p,d,b){var pt=szkParty(p,d),ln=szkLink(p,d);if(!pt.email){toas
     log(p,'Szerződés kiküldve aláírásra: '+pt.nev);toast('Kiküldve aláírásra');save();render()})}
 function szk1Gt(p,d,b){var sig=window.__sig,nv=gv('szkn1').trim();if(!nv){toast('Add meg a nevet');return}if(!sig||!sig.has()){toast('Írd alá a mezőben');return}var r=gs();if(!r){toast('Helyi módban nem írható alá');return}
   b.disabled=true;b.textContent='Aláírás, PDF készítése…';r.withSuccessHandler(function(res){if(res&&res.state){S=res.state;SV=S.v;LAST=JSON.stringify(S)}toast('Aláírva – a szerződés hatályos');render()}).withFailureHandler(function(e){b.disabled=false;toast('Nem sikerült: '+(e&&e.message||e))}).irodaSzkAlair1(CFG.k,p.id,d.id,{nev:nv,sig:sig.png(),ua:navigator.userAgent,meta:Object.assign({},window.__sm||{},{mod:sig.mode?sig.mode():''})})}
-function szk1Row(p,z,d,ix){if(z.st!=='aktiv'||d.gt||d.megszunt)return '';
+function szk1Row(p,z,d,ix){if(d.gt||d.megszunt)return '';
+  if(z.st==='alairas'){if(!d.al||d.kesobb)return '';var others=szkKor(z).filter(function(x){return !x.al}).length;if(!others)return '';
+    if(view.szk1!==d.id)return '<span class="evr"><button class="btn sm" data-szk1open="'+esc(d.id)+'" title="Nem kell megvárnod a többi felet: ez a szerződés a te aláírásoddal azonnal hatályba lép">Aláírom most ezt a szerződést</button></span>';
+    return '<div class="box"><b>'+esc(szkParty(p,d).nev)+' aláírta – most aláírod, és ez a szerződés hatályba lép</b><span class="muted" style="font-size:12.5px">A még alá nem írt '+others+' szerződés ettől függetlenül vár tovább; azokat külön, később írod alá.</span><label class="fld">A General Contractor Team Kft. nevében aláír<input type="text" id="szkn1" value="Benkő Ádám"></label><div class="fld">Aláírás<canvas id="sigc" class="sig" aria-label="Aláírás helye"></canvas></div><span class="evr"><button class="btn sm ghost" data-act="szclr">Aláírás törlése</button><button class="btn sm ghost" data-szk1open="">Mégse</button><button class="btn sm" data-szk1gt="'+ix+'">Aláírom – a szerződés hatályba lép</button></span></div>'}
+  if(z.st!=='aktiv')return '';
   if(d.st1==='alairas'&&d.al)return '<div class="box"><b>Aláírta: '+esc(d.al.nev)+' – most te írod alá</b><label class="fld">A General Contractor Team Kft. nevében aláír<input type="text" id="szkn1" value="Benkő Ádám"></label><div class="fld">Aláírás<canvas id="sigc" class="sig" aria-label="Aláírás helye"></canvas></div><span class="evr"><button class="btn sm ghost" data-act="szclr">Aláírás törlése</button><button class="btn sm" data-szk1gt="'+ix+'">Aláírom – a szerződés hatályba lép</button></span></div>';
   if(d.st1==='alairas')return '<span class="muted" style="font-size:12.5px">Aláírásra kiküldve: '+esc(d.kuldve||'')+' – az aláírására vár.</span>';
   return '<span class="evr"><button class="btn sm" data-szk1send="'+ix+'">Kiküldés aláírásra</button></span>'}
@@ -2060,6 +2064,7 @@ function h6Click(d,p,b){if(!p)return false;
   if(d.szkkes&&p.szk){var dk=p.szk.docs.filter(function(x){return x.id===d.szkkes})[0];if(dk){dk.kesobb=dk.kesobb?0:1;log(p,'Aláírási kör: '+szkParty(p,dk).nev+(dk.kesobb?' később, külön írja alá':' visszakerült a körbe'))}render();return true}
   if(d.szk1send!=null&&p.szk){szk1Send(p,p.szk.docs[+d.szk1send],b);return true}
   if(d.szk1gt!=null&&p.szk){szk1Gt(p,p.szk.docs[+d.szk1gt],b);return true}
+  if(d.szk1open!=null){view.szk1=d.szk1open||null;render();return true}
   if(d.rdel){var rr=null;(p.req||[]).forEach(function(r){if(r.id===d.rdel)rr=r});if(rr&&rr.type==='mod'&&rr.st==='pending')modRevert(p,rr);return false}
   return false}
 

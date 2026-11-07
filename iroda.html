@@ -388,6 +388,18 @@ var TPL=[
  {k:'atad',g:'atad',t:'Műszaki átadás-átvétel',wd:1,u:'átalány',ar:0,dep:['atdok','takar','terb'],lag:0,del:['Bejárás, hibalista','Átadás-átvételi jegyzőkönyv','E-építési napló lezárása, használatbavétel']}
 ];
 TPL.forEach(function(t){t.why='';t.req=t.k==='felm'||t.k==='atad'});
+/* projektenként átnevezhető munkanem (p.phases[i].nm, .dl) – a nyitott projekt nézetében és ütemezéskor érvényes */
+var NOOV=false;function curOvP(){if(NOOV)return null;if(typeof CURP!=='undefined'&&CURP)return CURP;try{return (view&&view.tab==='proj'&&view.pid&&S&&S.projects)?S.projects.filter(function(x){return x.id===view.pid})[0]||null:null}catch(e){return null}}
+TPL.forEach(function(t,i){var bt=t.t,bd=t.del;Object.defineProperty(t,'t',{get:function(){var p=curOvP(),x=p&&p.phases&&p.phases[i];return (x&&x.nm)||bt},set:function(v){bt=v},enumerable:true,configurable:true});
+  Object.defineProperty(t,'del',{get:function(){var p=curOvP(),x=p&&p.phases&&p.phases[i];return (x&&x.nm&&x.dl&&x.dl.length===bd.length)?x.dl:bd},set:function(v){bd=v},enumerable:true,configurable:true})});
+function phNm(p,i){var x=p&&p.phases&&p.phases[i];return (x&&x.nm)||(NOOV=true,TPL[i].t)+(NOOV=false,'')}
+/* egyszeri adatjavítások */
+var OVMIG=[{id:'bodajk28-esz-fk',pid:'bodajk28',k:'esz',nm:'Felületkiegyenlítés (opciós tétel)',dl:['Aljzat felmérése a bontás után','Felületkiegyenlítés a frissített költségvetés opciós tétele szerint – csak külön megrendelésre','Száradás, ellenőrzés a burkolás előtt'],
+  log:'Munkanem átnevezve: Aljzatbeton, esztrich → Felületkiegyenlítés (opciós tétel, a bontás utáni frissített költségvetés szerint); a 0 Ft-os fizetési sor törölve'}];
+function migOv(){if(!S||!S.projects)return false;S.settings=S.settings||{};var done=S.settings.mig=S.settings.mig||[],ch=false;
+  OVMIG.forEach(function(m){if(done.indexOf(m.id)>=0)return;var p=S.projects.filter(function(x){return x.id===m.pid})[0],i=kIdx(m.k);if(!p||i<0||!p.phases[i])return;var x=p.phases[i];x.nm=m.nm;x.dl=m.dl.slice();
+    p.pays=(p.pays||[]).filter(function(y){return !(y.ph===i&&!(+y.amt)&&y.st==='future')});(p.pays||[]).forEach(function(y){if(y.ph===i&&/Aljzatbeton, esztrich/.test(y.t||''))y.t=y.t.replace('Aljzatbeton, esztrich',m.nm)});
+    log(p,m.log);done.push(m.id);ch=true});return ch}
 var ST={skip:['Nincs a projektben','p-mute'],todo:['Hátravan','p-mute'],active:['Folyamatban','p-info'],wait:['Átvételre vár','p-warn'],done:['Kész','p-ok']};
 function gName(g){for(var i=0;i<G.length;i++)if(G[i][0]===g)return G[i][1];return g}
 function defQ(u,m2){m2=+m2||0;return u==='m²'?m2:(u==='m³'?Math.max(1,Math.round(m2*0.3)):(u==='fm'?Math.max(1,Math.round(m2*0.5)):(u==='db'?Math.max(1,Math.round(m2/12)):1)))}
@@ -439,7 +451,7 @@ var DEF_SET={ertesites:'generalteamhungary@gmail.com',felado:'GeneralTeam',telef
 function gs(){return (window.google&&google.script&&google.script.run)?google.script.run:null}
 function portalUrl(p){return (CFG.url||'')+'portal.html?pid='+encodeURIComponent(p.id)+'&t='+p.token}
 function mail(to,subject,html){if(!to||!/@/.test(to))return false;OUT.push({to:to,subject:subject,html:html});return true}
-function prep(){S.tpl=TPL.map(function(t){return {k:t.k,t:t.t,g:t.g,gn:gName(t.g),u:t.u,wd:t.wd,del:t.del}});S.settings=S.settings||{};for(var k in DEF_SET)if(S.settings[k]==null||(S.settings[k]===''&&DEF_SET[k]))S.settings[k]=DEF_SET[k];
+function prep(){NOOV=true;S.tpl=TPL.map(function(t){return {k:t.k,t:t.t,g:t.g,gn:gName(t.g),u:t.u,wd:t.wd,del:t.del.slice()}});NOOV=false;S.settings=S.settings||{};for(var k in DEF_SET)if(S.settings[k]==null||(S.settings[k]===''&&DEF_SET[k]))S.settings[k]=DEF_SET[k];
   S.events=S.events||[];S.events.forEach(function(e,i){if(!e.id)e.id='e'+e.d.replace(/-/g,'')+'_'+i});
   S.leads.forEach(function(l){l.files=l.files||[]});
   gtImport();S.projects.forEach(function(p){ensure(p);p.sch=sched(p).map(function(r){return [iso(r[0]),iso(r[1])]})})}
@@ -474,7 +486,7 @@ function poll(){var r=gs();if(!r||SAVING||!S)return;if(JSON.stringify((prep(),S)
 function boot(){var r=gs();
   if(!r){try{S=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){S=null}if(!S||!S.projects)S=seed();prep();hashRead();render();return}
   document.getElementById('main').innerHTML='<p class="muted">Betöltés…</p>';
-  r.withSuccessHandler(function(res){if(res.state){S=res.state;SV=S.v||0;LAST=JSON.stringify(S);prep()}else{S=seed();(res.pending||[]).forEach(function(l){S.leads.unshift(l)});SV=0}hashRead();render();setInterval(poll,30000)})
+  r.withSuccessHandler(function(res){if(res.state){S=res.state;SV=S.v||0;LAST=JSON.stringify(S);prep();if(migOv())setTimeout(save,500)}else{S=seed();(res.pending||[]).forEach(function(l){S.leads.unshift(l)});SV=0}hashRead();render();setInterval(poll,30000)})
    .withFailureHandler(function(err){document.getElementById('main').innerHTML='<p>Nem sikerült betölteni: '+esc(err&&err.message||err)+'</p>'}).irodaBetolt(CFG.k)}
 var view={tab:'att',pid:'p1',ph:null,ptab:'fazisok'};
 var main=document.getElementById('main');

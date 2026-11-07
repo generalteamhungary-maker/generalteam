@@ -297,7 +297,7 @@ function ptOssz(p){var K=p.kulso||[],I=p.megrInfo||{},pays=(p.pays||[]).filter(f
   h+='<tr><td style="'+td+';font-weight:700">Összesen</td><td style="'+tdr+'">'+ft(tn)+'</td><td style="'+tdr+'">'+ft(ta)+'</td><td style="'+tdr+';font-weight:800;font-size:16px">'+ft(tot)+'</td></tr></tbody></table></div>';
   if(I.ref&&+I.ref.net>tot){var d=+I.ref.net-tot;h+='<p style="margin-top:10px">A terasz eredeti, a Kft. által adott nettó ajánlata'+(I.ref.d?' ('+fd(I.ref.d)+')':'')+' <b>'+ft(+I.ref.net)+'</b> volt. A három szerződés együtt, áfával <b>'+ft(tot)+'</b>, vagyis <b>'+ft(d)+'-tal kevesebb</b>'+(I.m2?' ('+ft(Math.round(d/I.m2))+'/m²)':'')+'.</p>'}
   /* fizetési ütemezés mindhárom szerződésre */
-  var T=(typeof D!=='undefined'&&D&&D.tpl)||[],S=p.sch||[],kIx=function(k){for(var i=0;i<T.length;i++)if(T[i].k===k)return i;return -1},vd=function(i){return S[i]&&S[i][1]?fd(S[i][1]):''};
+  var T=(typeof D!=='undefined'&&D&&D.tpl)?ptTpl():[],S=p.sch||[],kIx=function(k){for(var i=0;i<T.length;i++)if(T[i].k===k)return i;return -1},vd=function(i){return S[i]&&S[i][1]?fd(S[i][1]):''};
   var F=[];pays.forEach(function(y){var a=Math.round((+y.amt||0)*0.27);F.push({ki:'General Contractor Team Kft.',mi:String(y.t||'').replace(/^[^–]*–\s*/,''),mikor:vd(y.ph),n:+y.amt||0,b:(+y.amt||0)+a,mod:'számla alapján, átutalással, 8 napon belül',ord:S[y.ph]&&S[y.ph][1]||'9999'})});
   K.forEach(function(k){var ix=(k.phs||[]).map(kIx).filter(function(i){return i>=0}),last='';ix.forEach(function(i){if(S[i]&&S[i][1]&&S[i][1]>last)last=S[i][1]});var al=/alanyi|mentes/i.test(k.afa||''),n=+k.dij||0;
     F.push({ki:k.fel1,mi:k.fizUtem||(k.tip==='megb'?'Megbízási díj':'Vállalkozói díj – a munka elvégzése után'),mikor:last?fd(last):'',n:n,b:al?n:n+Math.round(n*0.27),mod:/kész/i.test(k.fiz||'')?'készpénzben, átvételi elismervény ellenében':'a '+(k.tip==='megb'?'Megbízott':'Vállalkozó')+' számlája alapján, átutalással',ord:last||'9999'})});
@@ -335,9 +335,10 @@ function ptTobb(p){var L=p.szkTobb||[];if(!L.length)return '';var h='',sig=false
     else if(x.st==='alairas')h+='<p class="muted">Aláírásra vár – az előző szerződés aláírása után itt írhatja alá.</p>';
     h+='</div>'});
   return h}
+function ptTpl(){return (D.tpl||[]).map(function(t,i){var x=((D.p||{}).phases||[])[i];return x&&x.nm?Object.assign({},t,{t:x.nm,del:(x.dl&&x.dl.length===(t.del||[]).length)?x.dl:t.del}):t})}
 function ptSzm(zd){return SZM.reg('u_'+CFG.pid,{html:zd.html,megj:zd.megj||[],me:'u',canAdd:!zd.al&&!zd.gt,onAdd:function(o){return new Promise(function(res,rej){google.script.run.withSuccessHandler(function(r){D=r;render();res()}).withFailureHandler(function(e){rej(e)}).szkMegj(CFG.pid,CFG.t,'',o)})}})}
 function render(){
-  var p=D.p,T=D.tpl||[],h='',ex=p.extra||[],sch=p.sch||[];
+  var p=D.p,T=ptTpl(),h='',ex=p.extra||[],sch=p.sch||[];
   if(flash)h+='<div class="msg" role="status">'+esc(flash)+'</div>';
   h+='<div><span class="tag">'+esc(p.hely||'')+' · '+(p.m2||'')+' m²</span><h1>'+esc(p.nev)+'</h1><p class="muted">'+esc(p.ugyfel)+' · '+esc(p.csomag||'')+'</p></div>';
   if(p.elo&&p.elo.st==='ajanlat')h+='<div class="card hl"><span class="tag">Ajánlat · az Ön döntésére vár</span><h2>Ajánlatunkat elküldtük'+(p.elo.d?' ('+fd(p.elo.d)+')':'')+'</h2><p>Lent megtalálja a tételes ajánlatot és a tervezett ütemtervet. Ha megrendeli a munkát, kérjük, jelezze itt üzenetben – ezután egyeztetjük a szerződéses feltételeket és a végleges kezdési időpontot. Addig az ütemezés tervezett, a dátumok egyeztetés alatt állnak.</p><div class="actions"><button class="btn" data-rendel="1">Megrendelem – üzenet írása</button><button class="btn sec" data-offer="1">Ajánlat megnyitása</button></div></div>';

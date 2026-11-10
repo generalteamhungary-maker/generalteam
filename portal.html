@@ -415,10 +415,10 @@ function render(){
   /* dokumentumok + tárhely */
   var o=p.offer;
   if(o){var oa=(o.att||[]).concat(o.files||[]).filter(function(f){return f&&f[2]}),okx=ex.filter(function(e){return e.st==='ok'});
-    h+='<div class="card"><h2>Ajánlat</h2><p>'+(o.d?fd(o.d)+' · ':'')+'<b>'+ft(+o.sum||0)+' + áfa</b></p>'+((o.rows||[]).length?'<table>'+o.rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="r">'+ft(+r[2]||0)+'</td></tr>'}).join('')+'</table>':'')+
+    var frk=/Frissített költségvetés/.test(o.targy||'');h+='<div class="card"><h2>'+(frk?'Frissített költségvetés':'Ajánlat')+'</h2><p>'+(o.d?fd(o.d)+' · ':'')+'<b>'+ft(+o.sum||0)+' + áfa</b></p>'+((o.rows||[]).length?'<table>'+o.rows.map(function(r){return '<tr><td>'+esc(r[0])+'</td><td class="r">'+ft(+r[2]||0)+'</td></tr>'}).join('')+'</table>':'')+
       (okx.length?'<p class="muted" style="font-size:14px">Elfogadott pótmunkák: '+okx.map(function(e){return esc(e.t)+' ('+ft(+e.amt||0)+')'}).join(', ')+'</p>':'')+
       (oa.length?'<div class="docs">'+oa.map(function(f){return docLink(f,'melléklet')}).join('')+'</div>':'')+
-      '<button class="btn sec" data-offer="1" style="align-self:flex-start">Ajánlat megnyitása (PDF-ként menthető)</button></div>'}
+      '<button class="btn sec" data-offer="1" style="align-self:flex-start">'+(frk?'Költségvetés megnyitása':'Ajánlat megnyitása')+' (PDF-ként menthető)</button></div>'}
   var anyDoc=p.phases.some(function(x){return (x.docs||[]).some(vis)});
   h+='<div class="card"><h2>Közös tárhely és az Ön fájljai</h2>'+(anyDoc?'<p class="muted" style="font-size:14px">A dokumentumok munkanemenként a „Hol tartunk?” résznél tölthetők le.</p>':'<p class="muted" style="font-size:14px">A dokumentumok a „Hol tartunk?” résznél, az adott munkanemnél jelennek meg, amint feltöltjük őket.</p>');
   var links=[];if(p.mappa)links.push({n:'Közös Google Drive mappa',u:p.mappa});(p.tar||[]).forEach(function(x){links.push(x)});
